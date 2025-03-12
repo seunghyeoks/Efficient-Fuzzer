@@ -4,4 +4,4 @@
 
 
 ## Schedule
-![](.\schedule.png)
+![](schedule.png)
