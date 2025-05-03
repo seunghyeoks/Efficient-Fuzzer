@@ -19,7 +19,7 @@
 | 3 주차 | 연구 브레인스토밍 결과 작성 | [보고서](https://github.com/seunghyeoks/Efficient-Fuzzer/blob/main/docs/5조-3주차-Fuzz%20Testing을%20통한%20위성%20SW%20분석-브레인스토밍%20결과.pdf) | [발표자료](https://github.com/seunghyeoks/Efficient-Fuzzer/blob/main/media/5조-3주차-Fuzz%20Testing을%20통한%20위성%20SW%20분석-발표자료.pdf) | [발표영상](https://youtu.be/M2D78jdR3I0) | [PR](https://github.com/seunghyeoks/Efficient-Fuzzer/pull/3) |
 | 4 주차 | 문제정의서 작성 | [보고서](https://github.com/seunghyeoks/Efficient-Fuzzer/blob/main/docs/5조-4주차-Fuzz%20Testing을%20통한%20위성%20SW%20분석-문제정의서.pdf) | [발표자료](https://github.com/seunghyeoks/Efficient-Fuzzer/blob/main/media/5조-4주차-Fuzz%20Testing을%20통한%20위성%20SW%20분석-발표자료.pdf) | [발표영상](https://youtu.be/tDMezTqOgdg) | [PR](https://github.com/seunghyeoks/Efficient-Fuzzer/pull/4) |
 | 5,6 주차 | 유즈케이스 명세서 작성 | [보고서](https://github.com/seunghyeoks/Efficient-Fuzzer/blob/main/docs/5조-6주차-Fuzz%20Testing을%20통한%20위성%20SW%20분석-유스케이스명세서.pdf) | [발표자료](https://github.com/seunghyeoks/Efficient-Fuzzer/blob/main/media/5조-6주차-Fuzz%20Testing을%20통한%20위성%20SW%20분석-발표자료.pdf) | [발표영상](https://youtu.be/UdHKk87OPSc) | [PR](https://github.com/seunghyeoks/Efficient-Fuzzer/pull/5) |
-| 7,8 주차 | 연구 해결 방법에 대한 알고리즘 순서도 작성 | 보고서 | 발표자료 | 발표영상 | PR |
+| 7,8 주차 | 연구 해결 방법에 대한 알고리즘 순서도 작성 | [보고서](https://github.com/seunghyeoks/Efficient-Fuzzer/blob/main/docs/5조-8주차-Fuzz%20Testing을%20통한%20위성%20SW%20분석-시퀀스다이어그램.pdf) | [발표자료](https://github.com/seunghyeoks/Efficient-Fuzzer/blob/main/media/5조-8주차-Fuzz%20Testing을%20통한%20위성%20SW%20분석-발표자료.pdf) | [발표영상](https://www.youtube.com/watch?v=VpL7oVOTBas) | [PR](https://github.com/seunghyeoks/Efficient-Fuzzer/pull/6) |
 | 9 주차 | 연구 결과 작성 | 보고서 | 발표자료 | 발표영상 | PR |
 | 10 주차 | 연구 논의 작성 | 보고서 | 발표자료 | 발표영상 | PR |
 | 12 주차 | 논문 초안 작성 | 보고서 | 발표자료 | 발표영상 | PR |
