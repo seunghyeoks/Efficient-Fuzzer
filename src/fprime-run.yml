@@ -1,0 +1,27 @@
+# docker-compose for fprime
+services:
+  fprime:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.fprime
+    container_name: fprime_dev
+    ports:
+      - '5001:5001'
+    entrypoint:
+      - /usr/local/bin/entrypoint.sh
+    command:
+      - bash
+      - -lc
+      - |
+        if [ ! -d /workspace/MyProject/build-fprime-automatic-native ]; then
+          fprime-util generate
+        fi
+        fprime-util build
+        bash
+    tty: true
+    volumes:
+      - ./MyProject:/workspace/MyProject
+
+# named volume 선언
+volumes:
+  fprime-project:
