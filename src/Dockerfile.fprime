@@ -1,0 +1,38 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 시스템 패키지 설치
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    cmake \
+    build-essential \
+    clang \
+    g++ \
+    python3 \
+    python3-pip \
+    python3-venv \
+    curl \
+  && rm -rf /var/lib/apt/lists/*
+
+# pip 최신화 및 fprime-bootstrap 설치
+RUN python3 -m pip install --upgrade pip && \
+    pip3 install fprime-bootstrap
+
+# 작업 디렉토리 설정
+WORKDIR /workspace
+
+# fprime 프로젝트 생성 (비대화형) 및 가상환경 설정
+RUN printf "MyProject\n" | fprime-bootstrap project
+
+# 프로젝트 디렉토리로 이동
+WORKDIR /workspace/MyProject
+ENV PATH="/workspace/MyProject/fprime-venv/bin:$PATH"
+
+# 엔트리포인트 스크립트 복사 및 권한 설정
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# 컨테이너 실행 시 가상환경이 활성화된 상태로 bash를 실행
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["bash"]
