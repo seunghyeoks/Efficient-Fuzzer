@@ -5,7 +5,7 @@ if command -v dos2unix > /dev/null 2>&1; then
 elif command -v sed > /dev/null 2>&1; then
     sed -i 's/\r$//' "$0"
 fi
-set -e
+# 오류가 발생해도 스크립트가 계속 실행되도록 set -e 제거
 
 cd /workspace/Efficient-Fuzzer
 
@@ -160,20 +160,34 @@ echo "=== 초기 코퍼스 생성 ==="
 # libFuzzer 실행
 echo "=== libFuzzer 실행 시작 ==="
 mkdir -p findings
-./cmd_dispatcher_fuzzer -max_len=1024 -artifact_prefix=findings/ corpus || true
 
-# 퍼징 결과 요약
-echo "=== 퍼징 결과 요약 ==="
-echo "발견된 크래시/취약점:"
-ls -la findings/ || echo "발견된 취약점 없음"
+# libFuzzer를 백그라운드로 실행
+./cmd_dispatcher_fuzzer -max_len=1024 -artifact_prefix=findings/ corpus &
+FUZZER_PID=$!
 
-# 무한 실행 모드 추가 (컨테이너가 계속 실행되도록)
-if [ "$1" = "" ]; then
-    echo "=== 컨테이너 유지 모드 ==="
-    echo "컨테이너를 유지하기 위해 대기 중입니다."
-    # 컨테이너가 종료되지 않도록 무한 대기
-    tail -f /dev/null
+# 실행 상태 확인
+echo "libFuzzer가 PID $FUZZER_PID로 백그라운드에서 실행 중입니다."
+echo "결과는 findings/ 디렉토리에 저장됩니다."
+
+# 컨테이너 유지를 위한 트랩 설정 (Ctrl+C가 컨테이너를 종료하지 않도록)
+trap "echo 'Received SIGINT, but container will keep running. Fuzzer may have terminated.'" SIGINT
+trap "echo 'Received SIGTERM, but container will keep running. Fuzzer may have terminated.'" SIGTERM
+
+# 10초 기다리고 fuzzer가 여전히 실행 중인지 확인
+sleep 10
+if kill -0 $FUZZER_PID 2>/dev/null; then
+    echo "Fuzzer는 정상적으로 실행 중입니다."
 else
-    # 명령줄 인수로 전달된 명령 실행
-    exec "$@"
-fi 
+    echo "Fuzzer가 종료되었습니다. 결과 확인:"
+    ls -la findings/ || echo "발견된 취약점 없음"
+fi
+
+echo "=== 컨테이너 유지 모드 ==="
+echo "컨테이너를 유지하기 위해 대기 중입니다. (Ctrl+C를 눌러도 종료되지 않습니다)"
+echo "docker exec로 접속하여 결과를 확인하세요."
+echo "종료하려면 docker stop 명령을 사용하세요."
+
+# 무한 대기
+while true; do
+    sleep 3600 & wait $!
+done 
