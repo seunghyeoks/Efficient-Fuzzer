@@ -1,7 +1,7 @@
 // CmdDispatcherHarness.hpp
 #pragma once
 
-#include "../fprime/Svc/CmdDispatcher/CmdDispatcherImpl.hpp"
+#include "../fprime/Svc/CmdDispatcher/CommandDispatcherImpl.hpp"
 #include "../fprime/Fw/Com/ComBuffer.hpp"
 #include "../fprime/Fw/Cmd/CmdResponse.hpp"
 #include <vector>

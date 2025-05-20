@@ -26,6 +26,9 @@ WORKDIR /workspace
 # fprime 프로젝트 클론 및 설정 (특정 브랜치 지정)
 RUN git clone -b Week13/Final https://github.com/seunghyeoks/Efficient-Fuzzer.git
 
+# 프로젝트 디렉토리로 이동
+WORKDIR /workspace/Efficient-Fuzzer
+
 # submodule 초기화 및 업데이트
 RUN git submodule init && \
     git submodule update --recursive
@@ -37,7 +40,7 @@ WORKDIR /workspace/Efficient-Fuzzer
 RUN mkdir -p build/libfuzzer
 
 # libFuzzer 진입점 스크립트 복사
-COPY ./libfuzzer-entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./libFuzzer/libfuzzer-entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # 컨테이너 실행 시 libFuzzer 컴파일 및 실행
