@@ -96,7 +96,9 @@ echo "=== libFuzzer 컴파일 시작 ==="
 clang++ -g -O1 -fsanitize=fuzzer,address \
     -I/workspace/Efficient-Fuzzer/src/fprime \
     -I/workspace/Efficient-Fuzzer/src \
-    -I/workspace/Efficient-Fuzzer/src/* \
+    -I/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native \
+    -I/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/F-Prime \
+    -I/workspace/Efficient-Fuzzer/src/fprime/config \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
     -o cmd_dispatcher_fuzzer
