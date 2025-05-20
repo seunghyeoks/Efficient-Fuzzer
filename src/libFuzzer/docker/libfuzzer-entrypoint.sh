@@ -117,18 +117,22 @@ SYS_LIBS="-lpthread -ldl -lrt -lm -lstdc++ -lutil"
 CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -std=c++14 -fvisibility=default"
 LDFLAGS="-Wl,-z,defs -Wl,--no-as-needed"
 
-# libFuzzer 컴파일 및 링크
-echo "=== libFuzzer 컴파일 및 링크 ==="
+# stub 코드 소스 추가
+STUB_SOURCES=(/workspace/Efficient-Fuzzer/src/fprime/Os/Stub/*.cpp)
+
+# libFuzzer 컴파일 및 링크 (stub 코드 포함)
+echo "=== libFuzzer 컴파일 및 링크 (stub 코드 포함) ==="
 clang++ ${CXXFLAGS} \
     ${INCLUDE_DIRS} \
     ${FPRIME_INCLUDES} \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
+    "${STUB_SOURCES[@]}" \
     ${LDFLAGS} -Wl,--whole-archive ${ALL_LIBS[@]} -Wl,--no-whole-archive ${SYS_LIBS} \
     -o cmd_dispatcher_fuzzer
 
 if [ $? -ne 0 ]; then
-    echo "❌ 컴파일 또는 링크 실패. F' 프레임워크 모든 라이브러리를 링크했지만 심볼 누락이 있는지 확인하세요."
+    echo "❌ 컴파일 또는 링크 실패. stub 코드를 포함했음에도 문제가 발생합니다."
     exit 1
 fi
 
