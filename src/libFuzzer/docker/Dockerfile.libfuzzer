@@ -27,7 +27,7 @@ RUN pip3 install -U fprime-tools fprime-gds
 WORKDIR /workspace
 
 # fprime 프로젝트 클론 및 설정 (특정 브랜치 지정)
-RUN git clone -b Week13/Final https://github.com/seunghyeoks/Efficient-Fuzzer.git
+RUN git clone -b Week13/temp https://github.com/seunghyeoks/Efficient-Fuzzer.git
 
 # 프로젝트 디렉토리로 이동
 WORKDIR /workspace/Efficient-Fuzzer
