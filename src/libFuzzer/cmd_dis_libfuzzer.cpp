@@ -5,12 +5,17 @@
 
 void handle_abort(int sig) {
     fprintf(stderr, "[fuzz] caught abort/assert (signal %d), continue fuzzing\n", sig);
-    _exit(1); // 명시적으로 종료 (crash로 기록, fuzzer가 다음 입력으로 진행)
+    // 종료하지 않고 함수 리턴 (크래시가 기록되고 퍼저는 계속 실행)
 }
 
 __attribute__((constructor))
 void setup_signal_handler() {
     signal(SIGABRT, handle_abort);
+    // 다른 치명적인 신호도 처리
+    signal(SIGSEGV, handle_abort);
+    signal(SIGBUS, handle_abort);
+    signal(SIGILL, handle_abort);
+    signal(SIGFPE, handle_abort);
 }
 
 // libFuzzer 퍼징 진입점

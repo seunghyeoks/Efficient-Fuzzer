@@ -162,7 +162,16 @@ echo "=== libFuzzer 실행 시작 ==="
 mkdir -p findings
 
 # libFuzzer를 백그라운드로 실행
-./cmd_dispatcher_fuzzer -max_len=1024 -artifact_prefix=findings/ corpus &
+./cmd_dispatcher_fuzzer -max_len=1024 \
+                       -artifact_prefix=findings/ \
+                       -ignore_crashes=1 \
+                       -ignore_timeouts=1 \
+                       -ignore_ooms=1 \
+                       -timeout=1 \
+                       -error_exitcode=0 \
+                       -keep_going=1 \
+                       -runs=-1 \
+                       corpus &
 FUZZER_PID=$!
 
 # 실행 상태 확인

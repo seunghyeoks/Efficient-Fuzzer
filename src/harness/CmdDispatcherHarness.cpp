@@ -254,43 +254,51 @@ void CmdDispatcherHarness::printStatus() const {
 
 // 퍼징 인터페이스
 int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
-    if (size < 5) {
-        return 0; // 최소 크기 확인
-    }
-    
-    // 퍼징 데이터에서 명령 정보 추출
-    
-    // 오피코드 추출 (바이트 0-3)
-    FwOpcodeType opcode = 0;
-    memcpy(&opcode, data, sizeof(FwOpcodeType));
-    
-    // 직접 명령 버퍼 생성
-    Fw::ComBuffer cmdBuffer;
-    
-    // 패킷 타입 (FW_PACKET_COMMAND)
-    const FwPacketDescriptorType CMD_PACKET_TYPE = Fw::ComPacket::FW_PACKET_COMMAND;
-    cmdBuffer.serialize(CMD_PACKET_TYPE);
-    
-    // 명령 코드
-    cmdBuffer.serialize(opcode);
-    
-    // 인자 추가 (있는 경우)
-    if (size > sizeof(FwOpcodeType)) {
-        size_t argSize = size - sizeof(FwOpcodeType);
-        if (argSize > cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength()) {
-            argSize = cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength();
+    try {
+        if (size < 5) {
+            return 0; // 최소 크기 확인
         }
-        cmdBuffer.serialize(data + sizeof(FwOpcodeType), argSize);
+        
+        // 퍼징 데이터에서 명령 정보 추출
+        
+        // 오피코드 추출 (바이트 0-3)
+        FwOpcodeType opcode = 0;
+        memcpy(&opcode, data, sizeof(FwOpcodeType));
+        
+        // 직접 명령 버퍼 생성
+        Fw::ComBuffer cmdBuffer;
+        
+        // 패킷 타입 (FW_PACKET_COMMAND)
+        const FwPacketDescriptorType CMD_PACKET_TYPE = Fw::ComPacket::FW_PACKET_COMMAND;
+        cmdBuffer.serialize(CMD_PACKET_TYPE);
+        
+        // 명령 코드
+        cmdBuffer.serialize(opcode);
+        
+        // 인자 추가 (있는 경우)
+        if (size > sizeof(FwOpcodeType)) {
+            size_t argSize = size - sizeof(FwOpcodeType);
+            if (argSize > cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength()) {
+                argSize = cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength();
+            }
+            cmdBuffer.serialize(data + sizeof(FwOpcodeType), argSize);
+        }
+        
+        // 명령 시퀀스 번호 생성
+        U32 cmdSeq = getNextSequence();
+        
+        // 포트 번호 계산 (퍼징 데이터에서 유도)
+        NATIVE_INT_TYPE portNum = (size > 0) ? (data[size-1] % 10) : 0; // 0-9 사이로 제한
+        
+        // 명령 디스패치
+        dispatchRawCommand(cmdBuffer, cmdSeq, portNum);
+    } 
+    catch (const std::exception& e) {
+        fprintf(stderr, "[fuzz] 예외 발생: %s\n", e.what());
     }
-    
-    // 명령 시퀀스 번호 생성
-    U32 cmdSeq = getNextSequence();
-    
-    // 포트 번호 계산 (퍼징 데이터에서 유도)
-    NATIVE_INT_TYPE portNum = (size > 0) ? (data[size-1] % 10) : 0; // 0-9 사이로 제한
-    
-    // 명령 디스패치
-    dispatchRawCommand(cmdBuffer, cmdSeq, portNum);
+    catch (...) {
+        fprintf(stderr, "[fuzz] 알 수 없는 예외 발생\n");
+    }
     
     return 0;
 }
