@@ -106,9 +106,19 @@ FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime -I/workspac
 echo "=== 라이브러리 디렉토리 확인 ==="
 echo "라이브러리 경로: $LIB_DIR"
 
-# 모든 fprime 정적 라이브러리 링크 준비
-echo "=== 전체 라이브러리 목록 생성 ==="
-ALL_LIBS=("${LIB_DIR}"/*.a)
+# 모든 fprime 정적 라이브러리 링크 준비 (Stub 라이브러리 제외)
+echo "=== 전체 라이브러리 목록 생성 (Stub 제외) ==="
+declare -a ALL_LIBS=()
+for lib in "${LIB_DIR}"/*.a; do
+    base=$(basename "$lib")
+    # Stub 라이브러리는 제외
+    if [[ ! "$base" =~ _Stub\.a$ ]]; then
+        ALL_LIBS+=("$lib")
+    fi
+done
+
+# stringFormat 구현을 위한 Fw Types 소스
+SNPRINTF_SRC=(/workspace/Efficient-Fuzzer/src/fprime/Fw/Types/snprintf_format.cpp)
 
 # 명시적으로 필요한 시스템 라이브러리 지정
 SYS_LIBS="-lpthread -ldl -lrt -lm -lstdc++ -lutil"
@@ -120,14 +130,15 @@ LDFLAGS="-Wl,-z,defs -Wl,--no-as-needed"
 # stub 코드 소스 추가
 STUB_SOURCES=(/workspace/Efficient-Fuzzer/src/fprime/Os/Stub/*.cpp)
 
-# libFuzzer 컴파일 및 링크 (stub 코드 포함)
-echo "=== libFuzzer 컴파일 및 링크 (stub 코드 포함) ==="
+# libFuzzer 컴파일 및 링크 (stub 코드 및 stringFormat 소스 포함)
+echo "=== libFuzzer 컴파일 및 링크 ==="
 clang++ ${CXXFLAGS} \
     ${INCLUDE_DIRS} \
     ${FPRIME_INCLUDES} \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
     "${STUB_SOURCES[@]}" \
+    "${SNPRINTF_SRC[@]}" \
     ${LDFLAGS} -Wl,--whole-archive ${ALL_LIBS[@]} -Wl,--no-whole-archive ${SYS_LIBS} \
     -o cmd_dispatcher_fuzzer
 
