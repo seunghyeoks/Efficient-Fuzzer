@@ -160,7 +160,20 @@ echo "=== 초기 코퍼스 생성 ==="
 # libFuzzer 실행
 echo "=== libFuzzer 실행 시작 ==="
 mkdir -p findings
-./cmd_dispatcher_fuzzer -max_len=1024 -artifact_prefix=findings/ corpus
+./cmd_dispatcher_fuzzer -max_len=1024 -artifact_prefix=findings/ corpus || true
 
-# 명령줄 인수로 전달된 명령 실행
-exec "$@" 
+# 퍼징 결과 요약
+echo "=== 퍼징 결과 요약 ==="
+echo "발견된 크래시/취약점:"
+ls -la findings/ || echo "발견된 취약점 없음"
+
+# 무한 실행 모드 추가 (컨테이너가 계속 실행되도록)
+if [ "$1" = "" ]; then
+    echo "=== 컨테이너 유지 모드 ==="
+    echo "컨테이너를 유지하기 위해 대기 중입니다."
+    # 컨테이너가 종료되지 않도록 무한 대기
+    tail -f /dev/null
+else
+    # 명령줄 인수로 전달된 명령 실행
+    exec "$@"
+fi 
