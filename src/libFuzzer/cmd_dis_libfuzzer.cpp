@@ -5,7 +5,7 @@
 
 void handle_abort(int sig) {
     fprintf(stderr, "[fuzz] caught abort/assert (signal %d), continue fuzzing\n", sig);
-    // crash로 기록만 하고, 프로세스는 죽이지 않음
+    _exit(1); // 명시적으로 종료 (crash로 기록, fuzzer가 다음 입력으로 진행)
 }
 
 __attribute__((constructor))
