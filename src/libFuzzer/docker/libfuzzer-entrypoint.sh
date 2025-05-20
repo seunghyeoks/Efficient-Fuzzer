@@ -86,13 +86,62 @@ cd build/libfuzzer
 # src 하위 모든 디렉토리를 -I 옵션으로 변환
 INCLUDE_DIRS=$(find /workspace/Efficient-Fuzzer/src -type d | sed 's/^/-I/')
 
+# fprime 라이브러리를 찾기 위한 설정
+FPRIME_BUILD_DIR="/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native"
+FPRIME_LIB_DIR="${FPRIME_BUILD_DIR}/lib"
+
+# fprime 헤더 파일 위치 추가
+FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime"
+
+# 라이브러리 목록을 순서대로 지정
+FPRIME_LIBS=""
+
+# F Prime 빌드 디렉토리에서 필요한 라이브러리를 찾아서 링크
+if [ -d "${FPRIME_LIB_DIR}" ]; then
+    echo "✅ 라이브러리 디렉토리 ${FPRIME_LIB_DIR} 찾음"
+    # 먼저 Cmd 관련 라이브러리를 우선 지정
+    for lib in ${FPRIME_LIB_DIR}/*Cmd*.a ${FPRIME_LIB_DIR}/*Dispatcher*.a ${FPRIME_LIB_DIR}/libSvc_CmdDispatcher.a; do
+        if [ -f "$lib" ]; then
+            echo "라이브러리 추가: $lib"
+            FPRIME_LIBS="$FPRIME_LIBS $lib"
+        fi
+    done
+    
+    # 나머지 라이브러리 추가
+    for lib in ${FPRIME_LIB_DIR}/*.a; do
+        if [ -f "$lib" ] && [[ ! "$FPRIME_LIBS" =~ "$lib" ]]; then
+            echo "라이브러리 추가: $lib"
+            FPRIME_LIBS="$FPRIME_LIBS $lib"
+        fi
+    done
+else
+    echo "❌ 경고: 라이브러리 디렉토리 ${FPRIME_LIB_DIR}를 찾을 수 없습니다."
+    echo "현재 디렉토리 구조:"
+    find ${FPRIME_BUILD_DIR} -type d | grep lib || echo "lib 디렉토리를 찾을 수 없습니다."
+fi
+
+# 시스템 라이브러리 추가
+SYS_LIBS="-lpthread -ldl -lm -lrt"
+
 # libFuzzer 컴파일 (clang을 사용하여 fuzzing 및 sanitizer 활성화)
 echo "=== libFuzzer 컴파일 시작 ==="
-clang++ -g -O1 -fsanitize=fuzzer,address \
-    $INCLUDE_DIRS \
+echo "컴파일 명령: clang++ -g -O1 -fsanitize=fuzzer,address -std=c++14 ${INCLUDE_DIRS} ${FPRIME_INCLUDES} /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp -Wl,--start-group ${FPRIME_LIBS} -Wl,--end-group ${SYS_LIBS} -o cmd_dispatcher_fuzzer"
+
+clang++ -g -O1 -fsanitize=fuzzer,address -std=c++14 \
+    ${INCLUDE_DIRS} \
+    ${FPRIME_INCLUDES} \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
+    -Wl,--start-group ${FPRIME_LIBS} -Wl,--end-group ${SYS_LIBS} \
     -o cmd_dispatcher_fuzzer
+
+# 컴파일 결과 확인
+if [ $? -ne 0 ]; then
+    echo "❌ 컴파일 실패. 오류를 확인하세요."
+    exit 1
+fi
+
+echo "✅ 컴파일 성공!"
 
 # 코퍼스 디렉토리 생성
 mkdir -p corpus
