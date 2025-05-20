@@ -2,7 +2,7 @@ services:
   libfuzzer:
     build:
       context: .
-      dockerfile: Dockerfile.libfuzzer
+      dockerfile: libFuzzer/Dockerfile.libfuzzer
     container_name: fprime_libfuzzer
     volumes:
       - ../..:/workspace/local-code
