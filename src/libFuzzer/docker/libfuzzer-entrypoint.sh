@@ -83,6 +83,9 @@ fi
 # 빌드 디렉토리로 이동
 cd build/libfuzzer
 
+# FpConfig.hpp 위치 확인
+find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native -name "FpConfig.hpp"
+
 # libFuzzer 컴파일 (clang을 사용하여 fuzzing 및 sanitizer 활성화)
 echo "=== libFuzzer 컴파일 시작 ==="
 clang++ -g -O1 -fsanitize=fuzzer,address \
