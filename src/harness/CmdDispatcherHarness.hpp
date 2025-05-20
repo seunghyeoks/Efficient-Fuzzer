@@ -311,6 +311,9 @@ private:
     /** 응답 핸들러 목록 */
     std::vector<TestCmdResponseHandler*> m_responseHandlers;
     
+    /** 응답 핸들러 포트 번호 */
+    std::vector<NATIVE_INT_TYPE> m_responseHandlerPorts;
+    
     /** 명령 시퀀스 카운터 */
     U32 m_seqCnt;
     
