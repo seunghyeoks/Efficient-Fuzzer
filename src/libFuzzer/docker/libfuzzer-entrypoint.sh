@@ -116,21 +116,28 @@ OS_IMPL_LIBS=(
     "${LIB_DIR}/libOs.a"
 )
 
+# ActiveComponentBase 및 QueuedComponentBase 를 포함하는 라이브러리가 중요
+FW_COMPONENT_LIBS=(
+    "${LIB_DIR}/libFw_Obj.a" # 기본 객체
+    "${LIB_DIR}/libFw_Port.a" # PortBase 등
+    "${LIB_DIR}/libFw_Comp.a" # PassiveComponentBase
+    "${LIB_DIR}/libFw_CompQueued.a" # QueuedComponentBase, ActiveComponentBase
+)
+
 CORE_LIBS=(
     "${LIB_DIR}/libFw_Types.a"
-    "${LIB_DIR}/libFw_Port.a" 
-    "${LIB_DIR}/libFw_Comp.a" 
     "${LIB_DIR}/libFw_Cmd.a" 
     "${LIB_DIR}/libFw_Com.a" 
     "${LIB_DIR}/libFw_Buffer.a" 
     "${LIB_DIR}/libFw_Logger.a" 
     "${LIB_DIR}/libSvc_CmdDispatcher.a" 
-    "${LIB_DIR}/libFw_Obj.a" 
     "${LIB_DIR}/libFw_Tlm.a" 
     "${LIB_DIR}/libFw_Time.a" 
     "${LIB_DIR}/libFw_Log.a"
-    "${LIB_DIR}/libsnprintf-format.a"
+    "${LIB_DIR}/libUtils.a" # stringFormat을 포함할 수 있음
+    "${LIB_DIR}/libsnprintf-format.a" # stringFormat 대체 또는 보조
     "${LIB_DIR}/libconfig.a"
+    "${LIB_DIR}/libSvc_Ping.a"
 )
 
 # OS 구현 라이브러리 추가
@@ -140,7 +147,18 @@ for lib in "${OS_IMPL_LIBS[@]}"; do
         echo "라이브러리 추가: $(basename "$lib")"
         FPRIME_LIBS="$FPRIME_LIBS $lib"
     else
-        echo "경고: $lib 파일이 존재하지 않습니다."
+        echo "경고: OS 라이브러리 $lib 파일이 존재하지 않습니다."
+    fi
+done
+
+# Fw Component 라이브러리 추가
+echo "=== Fw Component 라이브러리 추가 ==="
+for lib in "${FW_COMPONENT_LIBS[@]}"; do
+    if [ -f "$lib" ]; then
+        echo "라이브러리 추가: $(basename "$lib")"
+        FPRIME_LIBS="$FPRIME_LIBS $lib"
+    else
+        echo "경고: Fw Component 라이브러리 $lib 파일이 존재하지 않습니다."
     fi
 done
 
@@ -151,11 +169,11 @@ for lib in "${CORE_LIBS[@]}"; do
         echo "라이브러리 추가: $(basename "$lib")"
         FPRIME_LIBS="$FPRIME_LIBS $lib"
     else
-        echo "경고: $lib 파일이 존재하지 않습니다."
+        echo "경고: 핵심 라이브러리 $lib 파일이 존재하지 않습니다."
     fi
 done
 
-# 나머지 모든 라이브러리 추가
+# 나머지 모든 라이브러리 추가 (위에서 명시적으로 추가된 것 제외)
 echo "=== 나머지 라이브러리 추가 ==="
 find "${LIB_DIR}" -name "*.a" | sort | while read -r lib; do
     # 이미 추가된 라이브러리는 건너뛰기
@@ -199,11 +217,11 @@ if [ $? -ne 0 ]; then
     echo "누락된 심볼 확인:"
     
     # 누락된 심볼들에 대해 어떤 라이브러리에 있는지 확인
-    for symbol in "Os::ConsoleInterface::getDelegate" "Os::CpuInterface::getDelegate" "Fw::stringFormat"; do
+    for symbol in "Os::ConsoleInterface::getDelegate" "Os::CpuInterface::getDelegate" "Fw::stringFormat" "Fw::ActiveComponentBase" "Os::Mutex" "Os::Queue"; do
         echo "=== 심볼 '$symbol' 검색 결과 ==="
-        for lib in ${LIB_DIR}/*.a; do
-            if nm -C "$lib" | grep -q "$symbol"; then
-                echo "발견: $lib"
+        for lib_file in ${LIB_DIR}/*.a; do # 변수명 수정: lib -> lib_file
+            if nm -C "$lib_file" 2>/dev/null | grep -q "$symbol"; then # nm 에러 무시 및 변수명 수정
+                echo "발견: $lib_file"
             fi
         done
     done
