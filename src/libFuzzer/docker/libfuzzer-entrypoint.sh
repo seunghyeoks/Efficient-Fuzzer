@@ -81,63 +81,118 @@ else
 fi
 
 # 빌드 디렉토리로 이동
+mkdir -p build/libfuzzer
 cd build/libfuzzer
 
 # src 하위 모든 디렉토리를 -I 옵션으로 변환
-INCLUDE_DIRS=$(find /workspace/Efficient-Fuzzer/src -type d | sed 's/^/-I/')
+INCLUDE_DIRS=$(find /workspace/Efficient-Fuzzer/src -type d | sort | sed 's/^/-I/')
 
 # fprime 라이브러리를 찾기 위한 설정
 FPRIME_BUILD_DIR="/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native"
-FPRIME_LIB_DIR="${FPRIME_BUILD_DIR}/lib"
+
+# 여러 라이브러리 디렉토리 검색
+LIB_DIRS=(
+    "${FPRIME_BUILD_DIR}/lib" 
+    "${FPRIME_BUILD_DIR}/F-Prime/Fw/*/lib" 
+    "${FPRIME_BUILD_DIR}/F-Prime/Svc/*/lib" 
+    "${FPRIME_BUILD_DIR}/F-Prime/Drv/*/lib"
+    "${FPRIME_BUILD_DIR}/F-Prime/Os/*/lib"
+)
 
 # fprime 헤더 파일 위치 추가
 FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime"
 
+# 디버깅: 라이브러리 디렉토리 목록 표시
+echo "=== 검색할 라이브러리 디렉토리 ==="
+for dir in "${LIB_DIRS[@]}"; do
+    echo "- $dir"
+done
+
 # 라이브러리 목록을 순서대로 지정
 FPRIME_LIBS=""
 
-# F Prime 빌드 디렉토리에서 필요한 라이브러리를 찾아서 링크
-if [ -d "${FPRIME_LIB_DIR}" ]; then
-    echo "✅ 라이브러리 디렉토리 ${FPRIME_LIB_DIR} 찾음"
-    # 먼저 Cmd 관련 라이브러리를 우선 지정
-    for lib in ${FPRIME_LIB_DIR}/*Cmd*.a ${FPRIME_LIB_DIR}/*Dispatcher*.a ${FPRIME_LIB_DIR}/libSvc_CmdDispatcher.a; do
-        if [ -f "$lib" ]; then
-            echo "라이브러리 추가: $lib"
-            FPRIME_LIBS="$FPRIME_LIBS $lib"
+# 우선 순위가 높은 라이브러리 패턴 목록
+PRIORITY_PATTERNS=("CmdDispatcher" "Command" "Cmd" "Buffer" "Port" "Com" "Comp" "Fw_" "Os_" "Serialize")
+
+# 라이브러리 디렉토리에서 모든 .a 파일 검색
+echo "=== 라이브러리 검색 중... ==="
+ALL_LIBS=()
+
+for dir in "${LIB_DIRS[@]}"; do
+    # 디렉토리가 실제로 존재하는 경로로 확장됨
+    for lib_path in $dir/*.a; do
+        if [ -f "$lib_path" ]; then
+            lib_name=$(basename "$lib_path")
+            echo "발견된 라이브러리: $lib_path"
+            ALL_LIBS+=("$lib_path")
         fi
     done
-    
-    # 나머지 라이브러리 추가
-    for lib in ${FPRIME_LIB_DIR}/*.a; do
-        if [ -f "$lib" ] && [[ ! "$FPRIME_LIBS" =~ "$lib" ]]; then
-            echo "라이브러리 추가: $lib"
-            FPRIME_LIBS="$FPRIME_LIBS $lib"
-        fi
-    done
-else
-    echo "❌ 경고: 라이브러리 디렉토리 ${FPRIME_LIB_DIR}를 찾을 수 없습니다."
-    echo "현재 디렉토리 구조:"
-    find ${FPRIME_BUILD_DIR} -type d | grep lib || echo "lib 디렉토리를 찾을 수 없습니다."
+done
+
+# 라이브러리가 하나도 없으면 오류 표시
+if [ ${#ALL_LIBS[@]} -eq 0 ]; then
+    echo "❌ 오류: F' 라이브러리를 찾을 수 없습니다!"
+    echo "F' 라이브러리 위치 확인:"
+    find ${FPRIME_BUILD_DIR} -name "*.a" || echo "라이브러리 파일을 찾을 수 없습니다."
+    exit 1
 fi
 
-# 시스템 라이브러리 추가
+echo "총 ${#ALL_LIBS[@]}개의 라이브러리 발견"
+
+# 우선순위 라이브러리를 먼저 추가
+echo "=== 우선순위 라이브러리 추가 ==="
+for pattern in "${PRIORITY_PATTERNS[@]}"; do
+    for lib in "${ALL_LIBS[@]}"; do
+        if [[ "$(basename "$lib")" =~ $pattern ]]; then
+            if [[ ! "$FPRIME_LIBS" =~ "$lib" ]]; then
+                echo "우선순위 라이브러리 추가: $(basename "$lib")"
+                FPRIME_LIBS="$FPRIME_LIBS $lib"
+            fi
+        fi
+    done
+done
+
+# 나머지 라이브러리 추가
+echo "=== 나머지 라이브러리 추가 ==="
+for lib in "${ALL_LIBS[@]}"; do
+    if [[ ! "$FPRIME_LIBS" =~ "$lib" ]]; then
+        echo "라이브러리 추가: $(basename "$lib")"
+        FPRIME_LIBS="$FPRIME_LIBS $lib"
+    fi
+done
+
+# 명시적으로 필요한 시스템 라이브러리 지정
 SYS_LIBS="-lpthread -ldl -lm -lrt"
 
-# libFuzzer 컴파일 (clang을 사용하여 fuzzing 및 sanitizer 활성화)
-echo "=== libFuzzer 컴파일 시작 ==="
-echo "컴파일 명령: clang++ -g -O1 -fsanitize=fuzzer,address -std=c++14 ${INCLUDE_DIRS} ${FPRIME_INCLUDES} /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp -Wl,--start-group ${FPRIME_LIBS} -Wl,--end-group ${SYS_LIBS} -o cmd_dispatcher_fuzzer"
+# 최종 컴파일 명령어 출력
+echo "=== libFuzzer 컴파일 명령 ==="
+COMPILE_CMD="clang++ -g -O1 -fsanitize=fuzzer,address -std=c++14 \
+    ${INCLUDE_DIRS} \
+    ${FPRIME_INCLUDES} \
+    /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
+    /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
+    -Wl,--whole-archive ${FPRIME_LIBS} -Wl,--no-whole-archive ${SYS_LIBS} \
+    -o cmd_dispatcher_fuzzer"
 
+echo "$COMPILE_CMD"
+
+# libFuzzer 컴파일 (clang을 사용하여 fuzzing 및 sanitizer 활성화)
 clang++ -g -O1 -fsanitize=fuzzer,address -std=c++14 \
     ${INCLUDE_DIRS} \
     ${FPRIME_INCLUDES} \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
-    -Wl,--start-group ${FPRIME_LIBS} -Wl,--end-group ${SYS_LIBS} \
+    -Wl,--whole-archive ${FPRIME_LIBS} -Wl,--no-whole-archive ${SYS_LIBS} \
     -o cmd_dispatcher_fuzzer
 
 # 컴파일 결과 확인
 if [ $? -ne 0 ]; then
     echo "❌ 컴파일 실패. 오류를 확인하세요."
+    echo "라이브러리 심볼 확인:"
+    for lib in ${FPRIME_LIBS}; do
+        echo "=== $lib 에 포함된 심볼 ==="
+        nm -C "$lib" | grep -E 'Cmd|InputCmdPort|OutputCmdResponsePort|CmdDispatcher'
+    done
     exit 1
 fi
 
