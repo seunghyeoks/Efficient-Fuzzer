@@ -55,15 +55,13 @@ fi
 
 # fprime 오토코더 빌드 확인 및 필요시 재실행
 echo "=== fprime 오토코더 빌드 확인 ==="
-# 빌드 디렉토리는 fprime-util이 자동으로 생성하므로, 빌드 결과물을 확인
+# 빌드 결과물만 확인 (Dockerfile에서 이미 빌드를 실행함)
 if [ ! -d "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native" ] || [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/Svc/CmdDispatcher/CommandDispatcherComponentAc.hpp" ]; then
-    echo "fprime 오토코더 빌드를 시작합니다..."
-    cd /workspace/Efficient-Fuzzer/src/fprime
-    fprime-util generate
-    fprime-util build
-    cd /workspace/Efficient-Fuzzer
+    echo "❌ 오류: fprime 빌드 결과물이 없습니다. Dockerfile에서 빌드가 제대로 실행되지 않았을 수 있습니다."
+    echo "빌드 디렉토리 상태:"
+    ls -la /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native 2>/dev/null || echo "빌드 디렉토리가 존재하지 않습니다."
 else
-    echo "✅ fprime 오토코더 빌드가 이미 완료되었습니다."
+    echo "✅ fprime 오토코더 빌드가 확인되었습니다."
 fi
 
 # 빌드 디렉토리로 이동
