@@ -2,15 +2,13 @@ services:
   libfuzzer:
     build:
       context: .
-      dockerfile: libFuzzer/Dockerfile.libfuzzer
+      dockerfile: libFuzzer/docker/Dockerfile.libfuzzer
     container_name: fprime_libfuzzer
     volumes:
       - ../..:/workspace/local-code
       - libfuzzer-findings:/workspace/Efficient-Fuzzer/build/libfuzzer/findings
     tty: true
     stdin_open: true
-    environment:
-      - COMPOSE_BAKE=true
     # AFL++ 및 Boofuzz 컨테이너는 나중에 추가
 
 volumes:

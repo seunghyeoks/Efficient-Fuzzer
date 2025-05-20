@@ -40,7 +40,7 @@ WORKDIR /workspace/Efficient-Fuzzer
 RUN mkdir -p build/libfuzzer
 
 # libFuzzer 진입점 스크립트 복사
-COPY ./libFuzzer/libfuzzer-entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./libFuzzer/docker/libfuzzer-entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # 컨테이너 실행 시 libFuzzer 컴파일 및 실행
