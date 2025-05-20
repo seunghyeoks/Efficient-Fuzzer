@@ -46,7 +46,7 @@ public:
      * CmdDispatcher로부터 명령을 수신하고 미리 설정된 응답이나
      * 사용자 정의 핸들러를 통해 응답을 반환합니다.
      */
-    void handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, Fw::CmdArgBuffer& args) override;
+    void handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, Fw::CmdArgBuffer& args);
     
     /**
      * @brief 특정 명령에 대한 응답 설정
@@ -117,7 +117,7 @@ public:
      * CmdDispatcher로부터 명령 처리 결과를 수신하고 내부 상태에 저장합니다.
      */
     void handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, 
-                const Fw::CmdResponse& response) override;
+                const Fw::CmdResponse& response);
     
     /**
      * @brief 마지막으로 수신한 응답 조회

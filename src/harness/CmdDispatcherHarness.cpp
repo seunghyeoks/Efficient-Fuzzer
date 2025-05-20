@@ -1,6 +1,7 @@
 #include "CmdDispatcherHarness.hpp"
 #include <iostream>
 #include <iomanip>
+#include <Fw/Cmd/CmdPacket.hpp>
 
 // TestCommandComponent 구현
 TestCommandComponent::TestCommandComponent(const char* name) : m_name(name) {}
@@ -108,7 +109,9 @@ void CmdDispatcherHarness::initialize(U32 maxCommands, U32 maxRegistrations) {
         auto handler = new TestCmdResponseHandler();
         handler->init();
         m_responseHandlers.push_back(handler);
-        m_dispatcher.set_seqStatus_OutputPort(i, handler);
+        
+        // 직접 private 핸들러를 호출하는 대신 public 메서드 사용
+        m_dispatcher.set_seqStatus_OutputPort(i, handler->getInputPortBase());
     }
     
     std::cout << "[" << m_name << "] 초기화 완료 (maxCmds=" << maxCommands 
@@ -116,25 +119,29 @@ void CmdDispatcherHarness::initialize(U32 maxCommands, U32 maxRegistrations) {
 }
 
 bool CmdDispatcherHarness::registerCommand(FwOpcodeType opcode, NATIVE_INT_TYPE compPortNum) {
-    // 명령 등록
-    m_dispatcher.compCmdReg_handler(compPortNum, opcode);
+    // 명령 등록을 위한 public API 사용
+    bool status = m_dispatcher.regCommands(compPortNum, opcode);
     std::cout << "[" << m_name << "] 명령 등록: OpCode=0x" << std::hex << opcode 
               << " CompPort=" << std::dec << compPortNum << std::endl;
-    return true; // 실제로는 성공 여부 확인 필요
+    return status;
 }
 
 Fw::ComBuffer CmdDispatcherHarness::createCommandBuffer(FwOpcodeType opcode, 
                                                       const U8* args, size_t argSize) {
-    Fw::ComBuffer buffer;
-    // 패킷 타입: 명령
-    buffer.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-    // 명령 코드
-    buffer.serialize(opcode);
+    // 명령 패킷 생성
+    Fw::CmdPacket cmdPkt;
+    cmdPkt.setOpCode(opcode);
     
     // 인자 추가 (있는 경우)
     if (args != nullptr && argSize > 0) {
-        buffer.serialize(args, argSize);
+        Fw::CmdArgBuffer argBuff;
+        argBuff.serialize(args, argSize);
+        cmdPkt.setArgBuffer(argBuff);
     }
+    
+    // 패킷을 ComBuffer로 직렬화
+    Fw::ComBuffer buffer;
+    cmdPkt.serialize(buffer);
     
     return buffer;
 }
@@ -151,8 +158,10 @@ bool CmdDispatcherHarness::dispatchRawCommand(const Fw::ComBuffer& buffer,
         m_responseHandlers[portNum]->clearResponses();
     }
     
-    // 명령 버퍼 전송
-    m_dispatcher.seqCmdBuff_handler(portNum, buffer, cmdSeq);
+    // 명령 버퍼 전송 - 복사본 생성하여 non-const 버퍼 전달
+    Fw::ComBuffer bufferCopy(buffer);
+    m_dispatcher.seqCmdBuff_in(portNum, bufferCopy, cmdSeq);
+    
     std::cout << "[" << m_name << "] 명령 전송: Seq=" << cmdSeq 
               << " Port=" << portNum << std::endl;
     return true;
@@ -161,8 +170,9 @@ bool CmdDispatcherHarness::dispatchRawCommand(const Fw::ComBuffer& buffer,
 void CmdDispatcherHarness::simulateComponentResponse(FwOpcodeType opcode, U32 cmdSeq,
                                                  NATIVE_INT_TYPE compPortNum,
                                                  const Fw::CmdResponse& response) {
-    // 컴포넌트 응답 시뮬레이션
-    m_dispatcher.compCmdStat_handler(compPortNum, opcode, cmdSeq, response);
+    // 컴포넌트 응답 시뮬레이션 - public API 사용
+    m_dispatcher.compCmdStat_in(compPortNum, opcode, cmdSeq, response);
+    
     std::cout << "[" << m_name << "] 컴포넌트 응답 시뮬레이션: OpCode=0x" << std::hex << opcode 
               << " Seq=" << std::dec << cmdSeq 
               << " CompPort=" << compPortNum 
@@ -171,10 +181,12 @@ void CmdDispatcherHarness::simulateComponentResponse(FwOpcodeType opcode, U32 cm
 
 void CmdDispatcherHarness::registerTestComponent(NATIVE_INT_TYPE portNum, 
                                                TestCommandComponent* component) {
-    // 컴포넌트를 디스패처에 연결
+    // 컴포넌트를 디스패처에 연결 - public API 사용
     m_components.push_back(component);
-    m_dispatcher.set_compCmdStat_InputPort(portNum, &component->m_cmdResponsePort);
-    m_dispatcher.set_compCmdSend_OutputPort(portNum, component);
+    
+    // public 연결 메서드 사용
+    m_dispatcher.set_compCmdStat_InputPort(portNum, component->m_cmdResponsePort.getInputPortBase());
+    m_dispatcher.set_compCmdSend_OutputPort(portNum, component->getInputPortBase());
     
     std::cout << "[" << m_name << "] 테스트 컴포넌트 등록: Port=" << portNum << std::endl;
 }
@@ -230,27 +242,28 @@ int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
         return 0; // 최소 크기 확인
     }
     
-    // 데이터를 ComBuffer로 변환
-    Fw::ComBuffer cmdBuffer;
-    
-    // 첫 바이트를 패킷 타입으로 사용
-    FwPacketDescriptorType packetType = data[0] % 3; // 0, 1, 2 중 하나로 제한
-    cmdBuffer.serialize(packetType);
-    
-    // 다음 4바이트를 OpCode로 사용
+    // 데이터를 CmdPacket으로 변환
     FwOpcodeType opcode = 0;
     memcpy(&opcode, &data[1], sizeof(FwOpcodeType));
-    cmdBuffer.serialize(opcode);
     
-    // 나머지 데이터를 인자로 추가
+    // 명령 패킷 생성
+    Fw::CmdPacket cmdPkt;
+    cmdPkt.setOpCode(opcode);
+    
+    // 인자 추가 (있는 경우)
     if (size > 5) {
+        Fw::CmdArgBuffer argBuff;
         size_t argSize = size - 5;
-        if (argSize > cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength()) {
-            argSize = cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength();
+        if (argSize > argBuff.getBuffCapacity()) {
+            argSize = argBuff.getBuffCapacity();
         }
-        
-        cmdBuffer.serialize(&data[5], argSize);
+        argBuff.serialize(&data[5], argSize);
+        cmdPkt.setArgBuffer(argBuff);
     }
+    
+    // 패킷을 ComBuffer로 직렬화
+    Fw::ComBuffer cmdBuffer;
+    cmdPkt.serialize(cmdBuffer);
     
     // 명령 시퀀스 번호 생성
     U32 cmdSeq = getNextSequence();
@@ -348,21 +361,23 @@ void CmdDispatcherHarness::runArgumentTest() {
         return Fw::CmdResponse(Fw::CmdResponse::VALIDATION_ERROR);
     });
     
-    // 인자를 포함한 버퍼 생성
-    Fw::ComBuffer buffer;
-    buffer.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-    buffer.serialize(testOpcode);
+    // 명령 패킷 생성
+    Fw::CmdPacket cmdPkt;
+    cmdPkt.setOpCode(testOpcode);
     
-    // 인자 추가
+    // 인자 설정
     U32 arg1 = 123;
     F32 arg2 = 456.789f;
     Fw::CmdArgBuffer args;
     args.serialize(arg1);
     args.serialize(arg2);
     
-    // 인자 버퍼를 명령 버퍼에 추가 
-    U8* argData = const_cast<U8*>(args.getBuffAddr());
-    buffer.serialize(argData, args.getBuffLength());
+    // 인자 버퍼를 명령 패킷에 추가
+    cmdPkt.setArgBuffer(args);
+    
+    // 패킷을 ComBuffer로 직렬화
+    Fw::ComBuffer buffer;
+    cmdPkt.serialize(buffer);
     
     // 명령 전송
     U32 cmdSeq = getNextSequence();
