@@ -43,6 +43,16 @@ if [ ! -d "/workspace/Efficient-Fuzzer/src/fprime" ] || [ ! -f "/workspace/Effic
     echo "✅ submodule 복구 성공."
 fi
 
+# fprime 도구 설치 확인 및 설치
+echo "=== fprime 도구 설치 확인 ==="
+if command -v fprime-fpp-to-xml > /dev/null 2>&1; then
+    echo "✅ fprime fpp 도구가 이미 설치되어 있습니다."
+else
+    echo "fprime fpp 도구를 설치합니다..."
+    pip install -r "/workspace/Efficient-Fuzzer/src/fprime/requirements.txt"
+    echo "✅ fprime fpp 도구 설치 완료."
+fi
+
 # fprime 오토코더 빌드 확인 및 필요시 재실행
 echo "=== fprime 오토코더 빌드 확인 ==="
 # 빌드 디렉토리는 fprime-util이 자동으로 생성하므로, 빌드 결과물을 확인

@@ -36,6 +36,9 @@ WORKDIR /workspace/Efficient-Fuzzer
 RUN git submodule init && \
     git submodule update --recursive
 
+# fprime 도구 추가 설치
+RUN pip install -r "/workspace/Efficient-Fuzzer/src/fprime/requirements.txt"
+
 # 컴파일용 디렉토리 생성
 RUN mkdir -p build/libfuzzer
 
