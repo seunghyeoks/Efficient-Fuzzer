@@ -1,0 +1,18 @@
+services:
+  libfuzzer:
+    build:
+      context: .
+      dockerfile: Dockerfile.libfuzzer
+    container_name: fprime_libfuzzer
+    volumes:
+      - ../..:/workspace/local-code
+      - libfuzzer-findings:/workspace/Efficient-Fuzzer/build/libfuzzer/findings
+    tty: true
+    stdin_open: true
+    environment:
+      - COMPOSE_BAKE=true
+    # AFL++ 및 Boofuzz 컨테이너는 나중에 추가
+
+volumes:
+  libfuzzer-findings:
+    # 퍼저가 발견한 크래시, 타임아웃 등의 결과를 저장할 볼륨 

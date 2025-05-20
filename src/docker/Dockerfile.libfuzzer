@@ -1,0 +1,41 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 기본 시스템 패키지 설치
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    cmake \
+    build-essential \
+    clang \
+    clang-14 \
+    llvm-14 \
+    llvm-14-dev \
+    libclang-14-dev \
+    g++ \
+    python3 \
+    python3-pip \
+    python3-venv \
+    make \
+    curl \
+  && rm -rf /var/lib/apt/lists/*
+
+# 작업 디렉토리 설정
+WORKDIR /workspace
+
+# fprime 프로젝트 클론 및 설정
+RUN git clone https://github.com/seunghyeoks/Efficient-Fuzzer.git
+
+# 프로젝트 디렉토리로 이동
+WORKDIR /workspace/Efficient-Fuzzer
+
+# 컴파일용 디렉토리 생성
+RUN mkdir -p build/libfuzzer
+
+# libFuzzer 진입점 스크립트 복사
+COPY ./libfuzzer-entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# 컨테이너 실행 시 libFuzzer 컴파일 및 실행
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["bash"] 
