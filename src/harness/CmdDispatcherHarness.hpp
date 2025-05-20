@@ -10,6 +10,45 @@
 #include <functional>
 
 /**
+ * @class TestCommandDispatcherImpl
+ * @brief CommandDispatcherImpl의 테스트 특화 확장 클래스
+ * 
+ * 이 클래스는 CommandDispatcherImpl을 확장하여 
+ * private 핸들러에 접근할 수 있도록 합니다.
+ */
+class TestCommandDispatcherImpl : public Svc::CommandDispatcherImpl {
+public:
+    /**
+     * @brief 생성자
+     * @param name 디스패처 이름
+     */
+    TestCommandDispatcherImpl(const char* name) : 
+        Svc::CommandDispatcherImpl(name) {}
+    
+    /**
+     * @brief 명령 등록 핸들러 접근
+     */
+    void compCmdReg_handlerAccess(NATIVE_INT_TYPE portNum, FwOpcodeType opCode) {
+        compCmdReg_handler(portNum, opCode);
+    }
+    
+    /**
+     * @brief 명령 버퍼 핸들러 접근
+     */
+    void seqCmdBuff_handlerAccess(NATIVE_INT_TYPE portNum, Fw::ComBuffer &data, U32 context) {
+        seqCmdBuff_handler(portNum, data, context);
+    }
+    
+    /**
+     * @brief 명령 응답 핸들러 접근
+     */
+    void compCmdStat_handlerAccess(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, 
+                                  U32 cmdSeq, const Fw::CmdResponse &response) {
+        compCmdStat_handler(portNum, opCode, cmdSeq, response);
+    }
+};
+
+/**
  * @class TestCommandComponent
  * @brief F' 컴포넌트 동작을 시뮬레이션하는 클래스
  * 
@@ -300,7 +339,7 @@ public:
     
 private:
     /** CmdDispatcher 인스턴스 */
-    Svc::CommandDispatcherImpl m_dispatcher;
+    TestCommandDispatcherImpl m_dispatcher;
     
     /** 하네스 이름 */
     const char* m_name;

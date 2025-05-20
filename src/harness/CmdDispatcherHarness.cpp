@@ -120,10 +120,9 @@ void CmdDispatcherHarness::initialize(U32 maxCommands, U32 maxRegistrations) {
 }
 
 bool CmdDispatcherHarness::registerCommand(FwOpcodeType opcode, NATIVE_INT_TYPE compPortNum) {
-    // 명령 등록 - 직접 핸들러를 호출
-    // 외부에서 접근할 때는 친구 클래스로 만들거나 다른 방법이 필요할 수 있음
+    // 명령 등록 - 확장된 접근 메서드 사용
     try {
-        m_dispatcher.compCmdReg_handler(compPortNum, opcode);
+        m_dispatcher.compCmdReg_handlerAccess(compPortNum, opcode);
         std::cout << "[" << m_name << "] 명령 등록: OpCode=0x" << std::hex << opcode 
                 << " CompPort=" << std::dec << compPortNum << std::endl;
         return true;
@@ -172,8 +171,8 @@ bool CmdDispatcherHarness::dispatchRawCommand(const Fw::ComBuffer& buffer,
     Fw::ComBuffer bufferCopy = buffer;
     
     try {
-        // 직접 핸들러 호출
-        m_dispatcher.seqCmdBuff_handler(portNum, bufferCopy, cmdSeq);
+        // 확장된 접근 메서드 호출
+        m_dispatcher.seqCmdBuff_handlerAccess(portNum, bufferCopy, cmdSeq);
         
         std::cout << "[" << m_name << "] 명령 전송: Seq=" << cmdSeq 
                 << " Port=" << portNum << std::endl;
@@ -190,8 +189,8 @@ void CmdDispatcherHarness::simulateComponentResponse(FwOpcodeType opcode, U32 cm
                                                  const Fw::CmdResponse& response) {
     // 컴포넌트 응답 시뮬레이션
     try {
-        // 직접 핸들러 호출
-        m_dispatcher.compCmdStat_handler(compPortNum, opcode, cmdSeq, response);
+        // 확장된 접근 메서드 호출
+        m_dispatcher.compCmdStat_handlerAccess(compPortNum, opcode, cmdSeq, response);
         
         std::cout << "[" << m_name << "] 컴포넌트 응답 시뮬레이션: OpCode=0x" << std::hex << opcode 
                 << " Seq=" << std::dec << cmdSeq 
