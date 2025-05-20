@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# Ensure a clean state by attempting to convert line endings, then proceed.
+if command -v dos2unix > /dev/null 2>&1; then
+    dos2unix "$0" 
+elif command -v sed > /dev/null 2>&1; then
+    sed -i 's/\r$//' "$0"
+fi
 set -e
 
 cd /workspace/Efficient-Fuzzer
@@ -105,6 +111,14 @@ FPRIME_LIBS=""
 
 # 라이브러리 직접 지정 (중요 순서에 따라)
 OS_IMPL_LIBS=(
+    "${LIB_DIR}/libOs_Mutex_Common.a"
+    "${LIB_DIR}/libOs_Queue_Common.a"
+    "${LIB_DIR}/libOs_Task_Common.a"
+    "${LIB_DIR}/libOs_File_Common.a" # File Common 추가
+    "${LIB_DIR}/libOs_Console_Common.a" # Console Common 추가
+    "${LIB_DIR}/libOs_Cpu_Common.a" # CPU Common 추가
+    "${LIB_DIR}/libOs_Memory_Common.a" # Memory Common 추가
+    "${LIB_DIR}/libOs_RawTime_Common.a" # RawTime Common 추가
     "${LIB_DIR}/libOs_Posix_Shared.a" 
     "${LIB_DIR}/libOs_Mutex_Posix.a" 
     "${LIB_DIR}/libOs_File_Posix.a" 
@@ -113,31 +127,32 @@ OS_IMPL_LIBS=(
     "${LIB_DIR}/libOs_Console_Posix.a" 
     "${LIB_DIR}/libOs_Cpu_Linux.a" 
     "${LIB_DIR}/libOs_Memory_Linux.a" 
-    "${LIB_DIR}/libOs.a"
+    "${LIB_DIR}/libOs.a" # OS Aggregator, OS 그룹 마지막에 위치
 )
 
-# ActiveComponentBase 및 QueuedComponentBase 를 포함하는 라이브러리가 중요
 FW_COMPONENT_LIBS=(
-    "${LIB_DIR}/libFw_Obj.a" # 기본 객체
-    "${LIB_DIR}/libFw_Port.a" # PortBase 등
-    "${LIB_DIR}/libFw_Comp.a" # PassiveComponentBase
-    "${LIB_DIR}/libFw_CompQueued.a" # QueuedComponentBase, ActiveComponentBase
+    "${LIB_DIR}/libFw_Obj.a" 
+    "${LIB_DIR}/libFw_Port.a" 
+    "${LIB_DIR}/libFw_Comp.a" 
+    "${LIB_DIR}/libFw_CompQueued.a" 
 )
 
 CORE_LIBS=(
-    "${LIB_DIR}/libFw_Types.a"
+    "${LIB_DIR}/libUtils.a" # stringFormat 제공 추정
+    "${LIB_DIR}/libsnprintf-format.a" # stringFormat 관련 백업 또는 주요 제공처
+    "${LIB_DIR}/libconfig.a"
+    "${LIB_DIR}/libFw_Types.a" # stringFormat 사용
+    "${LIB_DIR}/libFw_Buffer.a" 
     "${LIB_DIR}/libFw_Cmd.a" 
     "${LIB_DIR}/libFw_Com.a" 
-    "${LIB_DIR}/libFw_Buffer.a" 
-    "${LIB_DIR}/libFw_Logger.a" 
-    "${LIB_DIR}/libSvc_CmdDispatcher.a" 
-    "${LIB_DIR}/libFw_Tlm.a" 
-    "${LIB_DIR}/libFw_Time.a" 
     "${LIB_DIR}/libFw_Log.a"
-    "${LIB_DIR}/libUtils.a" # stringFormat을 포함할 수 있음
-    "${LIB_DIR}/libsnprintf-format.a" # stringFormat 대체 또는 보조
-    "${LIB_DIR}/libconfig.a"
+    "${LIB_DIR}/libFw_Logger.a" 
+    "${LIB_DIR}/libFw_Prm.a" # 추가
+    "${LIB_DIR}/libFw_Time.a" 
+    "${LIB_DIR}/libFw_Tlm.a" 
+    "${LIB_DIR}/libSvc_CmdDispatcher.a" 
     "${LIB_DIR}/libSvc_Ping.a"
+    # 다른 Svc 라이브러리들도 필요한 경우 여기에 추가
 )
 
 # OS 구현 라이브러리 추가
@@ -176,7 +191,6 @@ done
 # 나머지 모든 라이브러리 추가 (위에서 명시적으로 추가된 것 제외)
 echo "=== 나머지 라이브러리 추가 ==="
 find "${LIB_DIR}" -name "*.a" | sort | while read -r lib; do
-    # 이미 추가된 라이브러리는 건너뛰기
     if [[ ! "$FPRIME_LIBS" =~ "$lib" ]]; then
         echo "라이브러리 추가: $(basename "$lib")"
         FPRIME_LIBS="$FPRIME_LIBS $lib"
@@ -214,18 +228,27 @@ clang++ ${CXXFLAGS} \
 # 컴파일 결과 확인
 if [ $? -ne 0 ]; then
     echo "❌ 컴파일 실패. 오류를 확인하세요."
-    echo "누락된 심볼 확인:"
-    
-    # 누락된 심볼들에 대해 어떤 라이브러리에 있는지 확인
-    for symbol in "Os::ConsoleInterface::getDelegate" "Os::CpuInterface::getDelegate" "Fw::stringFormat" "Fw::ActiveComponentBase" "Os::Mutex" "Os::Queue"; do
-        echo "=== 심볼 '$symbol' 검색 결과 ==="
-        for lib_file in ${LIB_DIR}/*.a; do # 변수명 수정: lib -> lib_file
-            if nm -C "$lib_file" 2>/dev/null | grep -q "$symbol"; then # nm 에러 무시 및 변수명 수정
-                echo "발견: $lib_file"
+    echo "누락된 심볼 확인 시도:"
+    FAILED_SYMBOLS=$(grep "undefined reference to" letzten_fehler.log | sed -e "s/.*undefined reference to \`//" -e "s/\'.*//" | sort -u)
+    if [ -n "$FAILED_SYMBOLS" ]; then
+        echo "다음 심볼들에 대한 참조를 찾을 수 없습니다:"
+        echo "$FAILED_SYMBOLS"
+        for symbol in $FAILED_SYMBOLS; do
+            echo "--- 심볼 '$symbol' 검색 중 ... ---"
+            FOUND_IN_LIB=false
+            for lib_file in ${LIB_DIR}/*.a; do
+                if nm -C --defined-only "$lib_file" 2>/dev/null | grep -q "$symbol"; then
+                    echo "심볼 '$symbol'이(가) 라이브러리 '$lib_file'에서 발견되었습니다."
+                    FOUND_IN_LIB=true
+                fi
+            done
+            if ! $FOUND_IN_LIB; then
+                echo "심볼 '$symbol'을(를) ${LIB_DIR}/*.a 에서 찾을 수 없습니다."
             fi
         done
-    done
-    
+    else
+        echo "실패 로그에서 심볼을 추출하지 못했습니다."
+    fi
     exit 1
 fi
 
