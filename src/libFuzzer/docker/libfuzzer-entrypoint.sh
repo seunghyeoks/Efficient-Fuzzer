@@ -157,11 +157,14 @@ echo "=== 초기 코퍼스 생성 ==="
 # 기본 테스트를 0회 실행하여 코퍼스만 생성
 ./cmd_dispatcher_fuzzer -runs=0 corpus
 
-# libFuzzer 실행
+# libFuzzer를 백그라운드로 실행
 echo "=== libFuzzer 실행 시작 ==="
 mkdir -p findings
+mkdir -p corpus_backup # 코퍼스 백업 디렉토리 추가
 
-# libFuzzer를 백그라운드로 실행
+# 더 많은 디버깅 정보 출력
+export ASAN_OPTIONS="detect_leaks=0:allocator_may_return_null=1:print_scariness=1:handle_abort=1"
+
 ./cmd_dispatcher_fuzzer -max_len=1024 \
                        -artifact_prefix=findings/ \
                        -ignore_crashes=1 \
@@ -170,33 +173,68 @@ mkdir -p findings
                        -timeout=1 \
                        -error_exitcode=0 \
                        -keep_going=1 \
+                       -rss_limit_mb=4096 \
+                       -print_final_stats=1 \
                        -runs=-1 \
                        corpus &
 FUZZER_PID=$!
 
-# 실행 상태 확인
 echo "libFuzzer가 PID $FUZZER_PID로 백그라운드에서 실행 중입니다."
 echo "결과는 findings/ 디렉토리에 저장됩니다."
+
+# 정기적으로 상태 확인 및 백업하는 스크립트도 실행
+(
+while true; do
+    if kill -0 $FUZZER_PID 2>/dev/null; then
+        echo "$(date) - Fuzzer가 계속 실행 중입니다(PID: $FUZZER_PID)"
+        
+        # corpus 파일을 주기적으로 백업
+        if [ -d "corpus" ] && [ "$(ls -A corpus 2>/dev/null)" ]; then
+            echo "코퍼스 백업 중..."
+            cp -r corpus/* corpus_backup/ 2>/dev/null || true
+        fi
+        
+        # findings 확인
+        if [ -d "findings" ] && [ "$(ls -A findings 2>/dev/null)" ]; then
+            echo "발견된 이슈:"
+            ls -la findings/
+        fi
+    else
+        echo "$(date) - Fuzzer가 종료되었습니다. 재시작 시도..."
+        
+        # 퍼저 재시작
+        ./cmd_dispatcher_fuzzer -max_len=1024 \
+                              -artifact_prefix=findings/ \
+                              -ignore_crashes=1 \
+                              -ignore_timeouts=1 \
+                              -ignore_ooms=1 \
+                              -timeout=1 \
+                              -error_exitcode=0 \
+                              -keep_going=1 \
+                              -rss_limit_mb=4096 \
+                              -print_final_stats=1 \
+                              -runs=-1 \
+                              corpus &
+        FUZZER_PID=$!
+        echo "Fuzzer가 PID $FUZZER_PID로 재시작되었습니다."
+    fi
+    
+    # 60초마다 확인
+    sleep 60
+done
+) &
+STATUS_CHECKER_PID=$!
 
 # 컨테이너 유지를 위한 트랩 설정 (Ctrl+C가 컨테이너를 종료하지 않도록)
 trap "echo 'Received SIGINT, but container will keep running. Fuzzer may have terminated.'" SIGINT
 trap "echo 'Received SIGTERM, but container will keep running. Fuzzer may have terminated.'" SIGTERM
 
-# 10초 기다리고 fuzzer가 여전히 실행 중인지 확인
-sleep 10
-if kill -0 $FUZZER_PID 2>/dev/null; then
-    echo "Fuzzer는 정상적으로 실행 중입니다."
-else
-    echo "Fuzzer가 종료되었습니다. 결과 확인:"
-    ls -la findings/ || echo "발견된 취약점 없음"
-fi
-
+# 무한 대기
 echo "=== 컨테이너 유지 모드 ==="
 echo "컨테이너를 유지하기 위해 대기 중입니다. (Ctrl+C를 눌러도 종료되지 않습니다)"
 echo "docker exec로 접속하여 결과를 확인하세요."
 echo "종료하려면 docker stop 명령을 사용하세요."
 
-# 무한 대기
 while true; do
     sleep 3600 & wait $!
 done 
