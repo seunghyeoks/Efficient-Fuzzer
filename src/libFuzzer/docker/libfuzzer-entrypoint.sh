@@ -90,81 +90,75 @@ INCLUDE_DIRS=$(find /workspace/Efficient-Fuzzer/src -type d | sort | sed 's/^/-I
 # fprime 라이브러리를 찾기 위한 설정
 FPRIME_BUILD_DIR="/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native"
 
-# 수정: 실제 라이브러리 위치 지정
-LIB_DIRS=(
-    "${FPRIME_BUILD_DIR}/lib/Linux" 
-)
+# 라이브러리 경로 설정
+LIB_DIR="${FPRIME_BUILD_DIR}/lib/Linux"
 
 # fprime 헤더 파일 위치 추가
-FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime"
+FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime -I/workspace/Efficient-Fuzzer/src/fprime"
 
 # 디버깅: 라이브러리 디렉토리 목록 표시
-echo "=== 검색할 라이브러리 디렉토리 ==="
-for dir in "${LIB_DIRS[@]}"; do
-    echo "- $dir"
-done
+echo "=== 라이브러리 디렉토리 확인 ==="
+echo "라이브러리 경로: $LIB_DIR"
 
 # 라이브러리 목록을 순서대로 지정
 FPRIME_LIBS=""
 
-# 우선 순위가 높은 라이브러리 패턴 목록
-PRIORITY_PATTERNS=("CmdDispatcher" "Command" "Cmd" "Buffer" "Port" "Com" "Comp" "Fw_" "Os_" "Serialize" "Types")
+# 라이브러리 직접 지정 (중요 순서에 따라)
+OS_IMPL_LIBS=(
+    "${LIB_DIR}/libOs_Posix_Shared.a" 
+    "${LIB_DIR}/libOs_Mutex_Posix.a" 
+    "${LIB_DIR}/libOs_File_Posix.a" 
+    "${LIB_DIR}/libOs_RawTime_Posix.a" 
+    "${LIB_DIR}/libOs_Task_Posix.a" 
+    "${LIB_DIR}/libOs_Console_Posix.a" 
+    "${LIB_DIR}/libOs_Cpu_Linux.a" 
+    "${LIB_DIR}/libOs_Memory_Linux.a" 
+    "${LIB_DIR}/libOs.a"
+)
 
-# 라이브러리 디렉토리에서 모든 .a 파일 검색
-echo "=== 라이브러리 검색 중... ==="
-ALL_LIBS=()
+CORE_LIBS=(
+    "${LIB_DIR}/libFw_Types.a"
+    "${LIB_DIR}/libFw_Port.a" 
+    "${LIB_DIR}/libFw_Comp.a" 
+    "${LIB_DIR}/libFw_Cmd.a" 
+    "${LIB_DIR}/libFw_Com.a" 
+    "${LIB_DIR}/libFw_Buffer.a" 
+    "${LIB_DIR}/libFw_Logger.a" 
+    "${LIB_DIR}/libSvc_CmdDispatcher.a" 
+    "${LIB_DIR}/libFw_Obj.a" 
+    "${LIB_DIR}/libFw_Tlm.a" 
+    "${LIB_DIR}/libFw_Time.a" 
+    "${LIB_DIR}/libFw_Log.a"
+    "${LIB_DIR}/libsnprintf-format.a"
+    "${LIB_DIR}/libconfig.a"
+)
 
-for dir in "${LIB_DIRS[@]}"; do
-    # 디렉토리가 실제로 존재하는지 확인
-    if [ -d "$dir" ]; then
-        echo "디렉토리 $dir 검색 중..."
-        for lib_path in $dir/*.a; do
-            if [ -f "$lib_path" ]; then
-                lib_name=$(basename "$lib_path")
-                echo "발견된 라이브러리: $lib_name"
-                ALL_LIBS+=("$lib_path")
-            fi
-        done
+# OS 구현 라이브러리 추가
+echo "=== OS 구현 라이브러리 추가 ==="
+for lib in "${OS_IMPL_LIBS[@]}"; do
+    if [ -f "$lib" ]; then
+        echo "라이브러리 추가: $(basename "$lib")"
+        FPRIME_LIBS="$FPRIME_LIBS $lib"
     else
-        echo "디렉토리 $dir 가 존재하지 않습니다."
+        echo "경고: $lib 파일이 존재하지 않습니다."
     fi
 done
 
-# 라이브러리가 하나도 없으면 오류 표시
-if [ ${#ALL_LIBS[@]} -eq 0 ]; then
-    echo "❌ 오류: F' 라이브러리를 찾을 수 없습니다!"
-    echo "F' 라이브러리 위치 확인:"
-    find ${FPRIME_BUILD_DIR} -name "*.a" || echo "라이브러리 파일을 찾을 수 없습니다."
-    
-    # 직접 라이브러리 위치 지정 시도
-    echo "Linux 디렉토리에서 직접 라이브러리 검색:"
-    DIRECT_LIBS=$(find ${FPRIME_BUILD_DIR} -path "*/lib/Linux/*.a")
-    if [ -n "$DIRECT_LIBS" ]; then
-        echo "라이브러리를 찾았습니다. 직접 사용합니다."
-        ALL_LIBS=($DIRECT_LIBS)
+# 핵심 라이브러리 추가
+echo "=== 핵심 라이브러리 추가 ==="
+for lib in "${CORE_LIBS[@]}"; do
+    if [ -f "$lib" ]; then
+        echo "라이브러리 추가: $(basename "$lib")"
+        FPRIME_LIBS="$FPRIME_LIBS $lib"
     else
-        exit 1
+        echo "경고: $lib 파일이 존재하지 않습니다."
     fi
-fi
-
-echo "총 ${#ALL_LIBS[@]}개의 라이브러리 발견"
-
-# 우선순위 라이브러리를 먼저 추가
-echo "=== 우선순위 라이브러리 추가 ==="
-for pattern in "${PRIORITY_PATTERNS[@]}"; do
-    for lib in "${ALL_LIBS[@]}"; do
-        if [[ "$(basename "$lib")" =~ $pattern ]]; then
-            if [[ ! "$FPRIME_LIBS" =~ "$lib" ]]; then
-                echo "우선순위 라이브러리 추가: $(basename "$lib")"
-                FPRIME_LIBS="$FPRIME_LIBS $lib"
-            fi
-        fi
-    done
 done
 
-# 나머지 라이브러리 추가
+# 나머지 모든 라이브러리 추가
 echo "=== 나머지 라이브러리 추가 ==="
-for lib in "${ALL_LIBS[@]}"; do
+find "${LIB_DIR}" -name "*.a" | sort | while read -r lib; do
+    # 이미 추가된 라이브러리는 건너뛰기
     if [[ ! "$FPRIME_LIBS" =~ "$lib" ]]; then
         echo "라이브러리 추가: $(basename "$lib")"
         FPRIME_LIBS="$FPRIME_LIBS $lib"
@@ -172,37 +166,48 @@ for lib in "${ALL_LIBS[@]}"; do
 done
 
 # 명시적으로 필요한 시스템 라이브러리 지정
-SYS_LIBS="-lpthread -ldl -lm -lrt"
+SYS_LIBS="-lpthread -ldl -lrt -lm -lstdc++ -lutil"
+
+# 컴파일러 및 링커 플래그 설정
+CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -std=c++14 -fvisibility=default -D_GLIBCXX_USE_CXX11_ABI=1"
+LDFLAGS="-Wl,-z,defs -Wl,--no-as-needed"
 
 # 최종 컴파일 명령어 출력
 echo "=== libFuzzer 컴파일 명령 ==="
-COMPILE_CMD="clang++ -g -O1 -fsanitize=fuzzer,address -std=c++14 \
+COMPILE_CMD="clang++ ${CXXFLAGS} \
     ${INCLUDE_DIRS} \
     ${FPRIME_INCLUDES} \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
-    -Wl,--whole-archive ${FPRIME_LIBS} -Wl,--no-whole-archive ${SYS_LIBS} \
+    ${LDFLAGS} -Wl,--start-group ${FPRIME_LIBS} -Wl,--end-group ${SYS_LIBS} \
     -o cmd_dispatcher_fuzzer"
 
 echo "$COMPILE_CMD"
 
-# libFuzzer 컴파일 (clang을 사용하여 fuzzing 및 sanitizer 활성화)
-clang++ -g -O1 -fsanitize=fuzzer,address -std=c++14 \
+# libFuzzer 컴파일
+clang++ ${CXXFLAGS} \
     ${INCLUDE_DIRS} \
     ${FPRIME_INCLUDES} \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
-    -Wl,--whole-archive ${FPRIME_LIBS} -Wl,--no-whole-archive ${SYS_LIBS} \
+    ${LDFLAGS} -Wl,--start-group ${FPRIME_LIBS} -Wl,--end-group ${SYS_LIBS} \
     -o cmd_dispatcher_fuzzer
 
 # 컴파일 결과 확인
 if [ $? -ne 0 ]; then
     echo "❌ 컴파일 실패. 오류를 확인하세요."
-    echo "라이브러리 심볼 확인:"
-    for lib in ${FPRIME_LIBS}; do
-        echo "=== $lib 에 포함된 심볼 ==="
-        nm -C "$lib" | grep -E 'Cmd|InputCmdPort|OutputCmdResponsePort|CmdDispatcher'
+    echo "누락된 심볼 확인:"
+    
+    # 누락된 심볼들에 대해 어떤 라이브러리에 있는지 확인
+    for symbol in "Os::ConsoleInterface::getDelegate" "Os::CpuInterface::getDelegate" "Fw::stringFormat"; do
+        echo "=== 심볼 '$symbol' 검색 결과 ==="
+        for lib in ${LIB_DIR}/*.a; do
+            if nm -C "$lib" | grep -q "$symbol"; then
+                echo "발견: $lib"
+            fi
+        done
     done
+    
     exit 1
 fi
 
