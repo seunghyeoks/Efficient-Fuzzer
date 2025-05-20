@@ -3,7 +3,7 @@
 
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 #include <Fw/Com/ComBuffer.hpp>
-#include <Fw/Cmd/CmdResponse.hpp>
+#include <Fw/Cmd/CmdResponseEnumAc.hpp>
 #include <vector>
 #include <string>
 #include <functional>
