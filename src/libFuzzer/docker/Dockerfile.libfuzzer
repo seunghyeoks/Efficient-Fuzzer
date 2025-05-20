@@ -40,10 +40,10 @@ RUN git submodule init && \
 RUN mkdir -p build/libfuzzer
 
 # fprime 오토코더 실행 및 빌드
+# 프로젝트 루트에서 fprime-util 실행
 RUN mkdir -p build-fprime-automatic-native && \
-    cd build-fprime-automatic-native && \
-    fprime-util generate && \
-    fprime-util build
+    fprime-util generate build-fprime-automatic-native && \
+    fprime-util build build-fprime-automatic-native
 
 # libFuzzer 진입점 스크립트 복사
 COPY ./libFuzzer/docker/libfuzzer-entrypoint.sh /usr/local/bin/entrypoint.sh
