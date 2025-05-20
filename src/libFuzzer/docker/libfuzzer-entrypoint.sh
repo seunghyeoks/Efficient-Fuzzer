@@ -90,13 +90,9 @@ INCLUDE_DIRS=$(find /workspace/Efficient-Fuzzer/src -type d | sort | sed 's/^/-I
 # fprime 라이브러리를 찾기 위한 설정
 FPRIME_BUILD_DIR="/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native"
 
-# 여러 라이브러리 디렉토리 검색
+# 수정: 실제 라이브러리 위치 지정
 LIB_DIRS=(
-    "${FPRIME_BUILD_DIR}/lib" 
-    "${FPRIME_BUILD_DIR}/F-Prime/Fw/*/lib" 
-    "${FPRIME_BUILD_DIR}/F-Prime/Svc/*/lib" 
-    "${FPRIME_BUILD_DIR}/F-Prime/Drv/*/lib"
-    "${FPRIME_BUILD_DIR}/F-Prime/Os/*/lib"
+    "${FPRIME_BUILD_DIR}/lib/Linux" 
 )
 
 # fprime 헤더 파일 위치 추가
@@ -112,21 +108,26 @@ done
 FPRIME_LIBS=""
 
 # 우선 순위가 높은 라이브러리 패턴 목록
-PRIORITY_PATTERNS=("CmdDispatcher" "Command" "Cmd" "Buffer" "Port" "Com" "Comp" "Fw_" "Os_" "Serialize")
+PRIORITY_PATTERNS=("CmdDispatcher" "Command" "Cmd" "Buffer" "Port" "Com" "Comp" "Fw_" "Os_" "Serialize" "Types")
 
 # 라이브러리 디렉토리에서 모든 .a 파일 검색
 echo "=== 라이브러리 검색 중... ==="
 ALL_LIBS=()
 
 for dir in "${LIB_DIRS[@]}"; do
-    # 디렉토리가 실제로 존재하는 경로로 확장됨
-    for lib_path in $dir/*.a; do
-        if [ -f "$lib_path" ]; then
-            lib_name=$(basename "$lib_path")
-            echo "발견된 라이브러리: $lib_path"
-            ALL_LIBS+=("$lib_path")
-        fi
-    done
+    # 디렉토리가 실제로 존재하는지 확인
+    if [ -d "$dir" ]; then
+        echo "디렉토리 $dir 검색 중..."
+        for lib_path in $dir/*.a; do
+            if [ -f "$lib_path" ]; then
+                lib_name=$(basename "$lib_path")
+                echo "발견된 라이브러리: $lib_name"
+                ALL_LIBS+=("$lib_path")
+            fi
+        done
+    else
+        echo "디렉토리 $dir 가 존재하지 않습니다."
+    fi
 done
 
 # 라이브러리가 하나도 없으면 오류 표시
@@ -134,7 +135,16 @@ if [ ${#ALL_LIBS[@]} -eq 0 ]; then
     echo "❌ 오류: F' 라이브러리를 찾을 수 없습니다!"
     echo "F' 라이브러리 위치 확인:"
     find ${FPRIME_BUILD_DIR} -name "*.a" || echo "라이브러리 파일을 찾을 수 없습니다."
-    exit 1
+    
+    # 직접 라이브러리 위치 지정 시도
+    echo "Linux 디렉토리에서 직접 라이브러리 검색:"
+    DIRECT_LIBS=$(find ${FPRIME_BUILD_DIR} -path "*/lib/Linux/*.a")
+    if [ -n "$DIRECT_LIBS" ]; then
+        echo "라이브러리를 찾았습니다. 직접 사용합니다."
+        ALL_LIBS=($DIRECT_LIBS)
+    else
+        exit 1
+    fi
 fi
 
 echo "총 ${#ALL_LIBS[@]}개의 라이브러리 발견"
