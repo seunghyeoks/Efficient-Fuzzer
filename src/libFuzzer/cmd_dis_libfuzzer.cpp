@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <cassert>
 #include "harness/CmdDispatcherHarness.hpp"
 #include <Fw/Types/Assert.hpp>
 
@@ -45,7 +46,7 @@ public:
             longjmp(s_jumpBuffer, 1);
         } else {
             // 퍼징 중이 아닌 경우는 기본 동작
-            assert(0);
+            std::abort(); // assert(0) 대신 std::abort() 사용
         }
     }
 };
