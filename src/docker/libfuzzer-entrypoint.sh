@@ -3,6 +3,46 @@ set -e
 
 cd /workspace/Efficient-Fuzzer
 
+# 파일 존재 확인
+echo "=== 소스 파일 확인 ==="
+if [ ! -f "/workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp" ]; then
+    echo "❌ 오류: src/libFuzzer/cmd_dis_libfuzzer.cpp 파일이 존재하지 않습니다."
+    echo "브랜치 Week13/Final이 올바르게 클론되었는지 확인하세요."
+    echo "현재 디렉토리 구조:"
+    find /workspace/Efficient-Fuzzer -type f -name "*.cpp" | sort
+    exit 1
+fi
+
+if [ ! -f "/workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp" ]; then
+    echo "❌ 오류: src/harness/CmdDispatcherHarness.cpp 파일이 존재하지 않습니다."
+    echo "브랜치 Week13/Final이 올바르게 클론되었는지 확인하세요."
+    echo "현재 디렉토리 구조:"
+    find /workspace/Efficient-Fuzzer -type f -name "*.cpp" | sort
+    exit 1
+fi
+
+# fprime submodule 확인
+if [ ! -d "/workspace/Efficient-Fuzzer/src/fprime" ] || [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher/CommandDispatcherImpl.hpp" ]; then
+    echo "❌ 오류: fprime submodule이 존재하지 않거나 올바르게 초기화되지 않았습니다."
+    echo "git submodule 상태:"
+    git submodule status
+    
+    # 누락된 경우 다시 시도
+    echo "submodule 다시 초기화 시도..."
+    git submodule init
+    git submodule update --recursive
+    
+    # 다시 확인
+    if [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher/CommandDispatcherImpl.hpp" ]; then
+        echo "❌ submodule 복구 실패. 수동 확인이 필요합니다."
+        echo "fprime 디렉토리 구조:"
+        find /workspace/Efficient-Fuzzer/src/fprime -type f -name "*.hpp" | grep -i "cmddispatcher" | sort
+        exit 1
+    fi
+    
+    echo "✅ submodule 복구 성공."
+fi
+
 # 빌드 디렉토리로 이동
 cd build/libfuzzer
 
