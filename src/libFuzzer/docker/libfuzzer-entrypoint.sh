@@ -56,7 +56,7 @@ fi
 # fprime 오토코더 빌드 확인 및 필요시 재실행
 echo "=== fprime 오토코더 빌드 확인 ==="
 # 필요한 파일이 있는지 확인하고 없으면 빌드 실행
-if [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/Svc/CmdDispatcher/CommandDispatcherComponentAc.hpp" ]; then
+if [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/F-Prime/Svc/CmdDispatcher/CommandDispatcherComponentAc.hpp" ]; then
     echo "필요한 빌드 결과물이 없습니다. 빌드를 실행합니다..."
     # 기존 빌드 디렉토리가 있으면 삭제
     if [ -d "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native" ]; then
@@ -70,7 +70,7 @@ if [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/
     cd /workspace/Efficient-Fuzzer
     
     # 빌드 후 다시 확인
-    if [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/Svc/CmdDispatcher/CommandDispatcherComponentAc.hpp" ]; then
+    if [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/F-Prime/Svc/CmdDispatcher/CommandDispatcherComponentAc.hpp" ]; then
         echo "❌ 오류: 빌드 후에도 필요한 파일이 생성되지 않았습니다."
         echo "빌드 디렉토리 상태:"
         find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native -name "*.hpp" | grep -i "cmddispatcher" || echo "관련 파일을 찾을 수 없습니다."
