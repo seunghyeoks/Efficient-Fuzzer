@@ -83,14 +83,6 @@ fi
 # 빌드 디렉토리로 이동
 cd build/libfuzzer
 
-# FpConfig.hpp 위치 확인
-find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native -name "FpConfig.hpp"
-echo "FpConfig.hpp 위치(빌드 디렉토리): $(find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native -name "FpConfig.hpp")"
-
-# fprime 전체에서 FpConfig.hpp 검색
-find /workspace/Efficient-Fuzzer/src/fprime -name "FpConfig.hpp"
-echo "FpConfig.hpp 위치(fprime 전체): $(find /workspace/Efficient-Fuzzer/src/fprime -name "FpConfig.hpp")"
-
 # src 하위 모든 디렉토리를 -I 옵션으로 변환
 INCLUDE_DIRS=$(find /workspace/Efficient-Fuzzer/src -type d | sed 's/^/-I/')
 
