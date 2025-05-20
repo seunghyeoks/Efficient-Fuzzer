@@ -102,9 +102,8 @@ CmdDispatcherHarness::~CmdDispatcherHarness() {
 }
 
 void CmdDispatcherHarness::initialize(U32 maxCommands, U32 maxRegistrations) {
-    // 실제 구현에서는 maxCommands와 maxRegistrations를 사용하지 않음
-    // 대신 init() 함수만 호출
-    m_dispatcher.init();
+    // CommandDispatcherImpl의 init 함수에는 인자가 필요함
+    m_dispatcher.init(maxCommands, maxRegistrations);
     
     // 기본 seqCmdBuff/seqStatus 포트 핸들러 생성
     for (NATIVE_INT_TYPE i = 0; i < 10; i++) { // 최대 10개 포트 사용
@@ -132,21 +131,19 @@ Fw::ComBuffer CmdDispatcherHarness::createCommandBuffer(FwOpcodeType opcode,
                                                       const U8* args, size_t argSize) {
     Fw::ComBuffer buffer;
     
-    // F Prime 명령 패킷 형식에 맞게 버퍼 구성
-    Fw::CmdPacket cmdPkt;
+    // F Prime 명령 패킷 형식에 맞게 버퍼 구성 (직접 직렬화)
     
-    // 명령 코드 설정
-    cmdPkt.setOpCode(opcode);
+    // 패킷 타입: FW_PACKET_COMMAND (일반적으로 0)
+    const FwPacketDescriptorType CMD_PACKET_TYPE = Fw::ComPacket::FW_PACKET_COMMAND;
+    buffer.serialize(CMD_PACKET_TYPE);
+    
+    // 명령 코드
+    buffer.serialize(opcode);
     
     // 인자 추가 (있는 경우)
     if (args != nullptr && argSize > 0) {
-        Fw::CmdArgBuffer argBuf;
-        argBuf.serialize(args, argSize);
-        cmdPkt.setMsgArgBuffer(argBuf);
+        buffer.serialize(args, argSize);
     }
-    
-    // 패킷을 ComBuffer로 직렬화
-    cmdPkt.serialize(buffer);
     
     return buffer;
 }
@@ -267,24 +264,24 @@ int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
     FwOpcodeType opcode = 0;
     memcpy(&opcode, data, sizeof(FwOpcodeType));
     
-    // 명령 패킷 생성
-    Fw::CmdPacket cmdPkt;
-    cmdPkt.setOpCode(opcode);
+    // 직접 명령 버퍼 생성
+    Fw::ComBuffer cmdBuffer;
+    
+    // 패킷 타입 (FW_PACKET_COMMAND)
+    const FwPacketDescriptorType CMD_PACKET_TYPE = Fw::ComPacket::FW_PACKET_COMMAND;
+    cmdBuffer.serialize(CMD_PACKET_TYPE);
+    
+    // 명령 코드
+    cmdBuffer.serialize(opcode);
     
     // 인자 추가 (있는 경우)
     if (size > sizeof(FwOpcodeType)) {
-        Fw::CmdArgBuffer argBuf;
         size_t argSize = size - sizeof(FwOpcodeType);
-        if (argSize > argBuf.getBuffCapacity()) {
-            argSize = argBuf.getBuffCapacity();
+        if (argSize > cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength()) {
+            argSize = cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength();
         }
-        argBuf.serialize(data + sizeof(FwOpcodeType), argSize);
-        cmdPkt.setMsgArgBuffer(argBuf);
+        cmdBuffer.serialize(data + sizeof(FwOpcodeType), argSize);
     }
-    
-    // 패킷을 ComBuffer로 직렬화
-    Fw::ComBuffer cmdBuffer;
-    cmdPkt.serialize(cmdBuffer);
     
     // 명령 시퀀스 번호 생성
     U32 cmdSeq = getNextSequence();
@@ -395,14 +392,8 @@ void CmdDispatcherHarness::runArgumentTest() {
     args.serialize(arg1);
     args.serialize(arg2);
     
-    // 명령 패킷 생성
-    Fw::CmdPacket cmdPkt;
-    cmdPkt.setOpCode(testOpcode);
-    cmdPkt.setMsgArgBuffer(args);
-    
-    // 버퍼에 직렬화
-    Fw::ComBuffer buffer;
-    cmdPkt.serialize(buffer);
+    // 직접 명령 버퍼 생성
+    Fw::ComBuffer buffer = createCommandBuffer(testOpcode, args.getBuffAddr(), args.getBuffLength());
     
     // 명령 전송
     U32 cmdSeq = getNextSequence();
