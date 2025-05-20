@@ -106,149 +106,29 @@ FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime -I/workspac
 echo "=== 라이브러리 디렉토리 확인 ==="
 echo "라이브러리 경로: $LIB_DIR"
 
-# 라이브러리 목록을 순서대로 지정
-FPRIME_LIBS=""
-
-# 라이브러리 직접 지정 (중요 순서에 따라)
-OS_IMPL_LIBS=(
-    "${LIB_DIR}/libOs_Mutex_Common.a"
-    "${LIB_DIR}/libOs_Queue_Common.a"
-    "${LIB_DIR}/libOs_Task_Common.a"
-    "${LIB_DIR}/libOs_File_Common.a" # File Common 추가
-    "${LIB_DIR}/libOs_Console_Common.a" # Console Common 추가
-    "${LIB_DIR}/libOs_Cpu_Common.a" # CPU Common 추가
-    "${LIB_DIR}/libOs_Memory_Common.a" # Memory Common 추가
-    "${LIB_DIR}/libOs_RawTime_Common.a" # RawTime Common 추가
-    "${LIB_DIR}/libOs_Posix_Shared.a" 
-    "${LIB_DIR}/libOs_Mutex_Posix.a" 
-    "${LIB_DIR}/libOs_File_Posix.a" 
-    "${LIB_DIR}/libOs_RawTime_Posix.a" 
-    "${LIB_DIR}/libOs_Task_Posix.a" 
-    "${LIB_DIR}/libOs_Console_Posix.a" 
-    "${LIB_DIR}/libOs_Cpu_Linux.a" 
-    "${LIB_DIR}/libOs_Memory_Linux.a" 
-    "${LIB_DIR}/libOs.a" # OS Aggregator, OS 그룹 마지막에 위치
-)
-
-FW_COMPONENT_LIBS=(
-    "${LIB_DIR}/libFw_Obj.a" 
-    "${LIB_DIR}/libFw_Port.a" 
-    "${LIB_DIR}/libFw_Comp.a" 
-    "${LIB_DIR}/libFw_CompQueued.a" 
-)
-
-CORE_LIBS=(
-    "${LIB_DIR}/libUtils.a" # stringFormat 제공 추정
-    "${LIB_DIR}/libsnprintf-format.a" # stringFormat 관련 백업 또는 주요 제공처
-    "${LIB_DIR}/libconfig.a"
-    "${LIB_DIR}/libFw_Types.a" # stringFormat 사용
-    "${LIB_DIR}/libFw_Buffer.a" 
-    "${LIB_DIR}/libFw_Cmd.a" 
-    "${LIB_DIR}/libFw_Com.a" 
-    "${LIB_DIR}/libFw_Log.a"
-    "${LIB_DIR}/libFw_Logger.a" 
-    "${LIB_DIR}/libFw_Prm.a" # 추가
-    "${LIB_DIR}/libFw_Time.a" 
-    "${LIB_DIR}/libFw_Tlm.a" 
-    "${LIB_DIR}/libSvc_CmdDispatcher.a" 
-    "${LIB_DIR}/libSvc_Ping.a"
-    # 다른 Svc 라이브러리들도 필요한 경우 여기에 추가
-)
-
-# OS 구현 라이브러리 추가
-echo "=== OS 구현 라이브러리 추가 ==="
-for lib in "${OS_IMPL_LIBS[@]}"; do
-    if [ -f "$lib" ]; then
-        echo "라이브러리 추가: $(basename "$lib")"
-        FPRIME_LIBS="$FPRIME_LIBS $lib"
-    else
-        echo "경고: OS 라이브러리 $lib 파일이 존재하지 않습니다."
-    fi
-done
-
-# Fw Component 라이브러리 추가
-echo "=== Fw Component 라이브러리 추가 ==="
-for lib in "${FW_COMPONENT_LIBS[@]}"; do
-    if [ -f "$lib" ]; then
-        echo "라이브러리 추가: $(basename "$lib")"
-        FPRIME_LIBS="$FPRIME_LIBS $lib"
-    else
-        echo "경고: Fw Component 라이브러리 $lib 파일이 존재하지 않습니다."
-    fi
-done
-
-# 핵심 라이브러리 추가
-echo "=== 핵심 라이브러리 추가 ==="
-for lib in "${CORE_LIBS[@]}"; do
-    if [ -f "$lib" ]; then
-        echo "라이브러리 추가: $(basename "$lib")"
-        FPRIME_LIBS="$FPRIME_LIBS $lib"
-    else
-        echo "경고: 핵심 라이브러리 $lib 파일이 존재하지 않습니다."
-    fi
-done
-
-# 나머지 모든 라이브러리 추가 (위에서 명시적으로 추가된 것 제외)
-echo "=== 나머지 라이브러리 추가 ==="
-find "${LIB_DIR}" -name "*.a" | sort | while read -r lib; do
-    if [[ ! "$FPRIME_LIBS" =~ "$lib" ]]; then
-        echo "라이브러리 추가: $(basename "$lib")"
-        FPRIME_LIBS="$FPRIME_LIBS $lib"
-    fi
-done
+# 모든 fprime 정적 라이브러리 링크 준비
+echo "=== 전체 라이브러리 목록 생성 ==="
+ALL_LIBS=("${LIB_DIR}"/*.a)
 
 # 명시적으로 필요한 시스템 라이브러리 지정
 SYS_LIBS="-lpthread -ldl -lrt -lm -lstdc++ -lutil"
 
 # 컴파일러 및 링커 플래그 설정
-CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -std=c++14 -fvisibility=default -D_GLIBCXX_USE_CXX11_ABI=1"
+CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -std=c++14 -fvisibility=default"
 LDFLAGS="-Wl,-z,defs -Wl,--no-as-needed"
 
-# 최종 컴파일 명령어 출력
-echo "=== libFuzzer 컴파일 명령 ==="
-COMPILE_CMD="clang++ ${CXXFLAGS} \
-    ${INCLUDE_DIRS} \
-    ${FPRIME_INCLUDES} \
-    /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
-    /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
-    ${LDFLAGS} -Wl,--start-group ${FPRIME_LIBS} -Wl,--end-group ${SYS_LIBS} \
-    -o cmd_dispatcher_fuzzer"
-
-echo "$COMPILE_CMD"
-
-# libFuzzer 컴파일
+# libFuzzer 컴파일 및 링크
+echo "=== libFuzzer 컴파일 및 링크 ==="
 clang++ ${CXXFLAGS} \
     ${INCLUDE_DIRS} \
     ${FPRIME_INCLUDES} \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
-    ${LDFLAGS} -Wl,--start-group ${FPRIME_LIBS} -Wl,--end-group ${SYS_LIBS} \
+    ${LDFLAGS} -Wl,--whole-archive ${ALL_LIBS[@]} -Wl,--no-whole-archive ${SYS_LIBS} \
     -o cmd_dispatcher_fuzzer
 
-# 컴파일 결과 확인
 if [ $? -ne 0 ]; then
-    echo "❌ 컴파일 실패. 오류를 확인하세요."
-    echo "누락된 심볼 확인 시도:"
-    FAILED_SYMBOLS=$(grep "undefined reference to" letzten_fehler.log | sed -e "s/.*undefined reference to \`//" -e "s/\'.*//" | sort -u)
-    if [ -n "$FAILED_SYMBOLS" ]; then
-        echo "다음 심볼들에 대한 참조를 찾을 수 없습니다:"
-        echo "$FAILED_SYMBOLS"
-        for symbol in $FAILED_SYMBOLS; do
-            echo "--- 심볼 '$symbol' 검색 중 ... ---"
-            FOUND_IN_LIB=false
-            for lib_file in ${LIB_DIR}/*.a; do
-                if nm -C --defined-only "$lib_file" 2>/dev/null | grep -q "$symbol"; then
-                    echo "심볼 '$symbol'이(가) 라이브러리 '$lib_file'에서 발견되었습니다."
-                    FOUND_IN_LIB=true
-                fi
-            done
-            if ! $FOUND_IN_LIB; then
-                echo "심볼 '$symbol'을(를) ${LIB_DIR}/*.a 에서 찾을 수 없습니다."
-            fi
-        done
-    else
-        echo "실패 로그에서 심볼을 추출하지 못했습니다."
-    fi
+    echo "❌ 컴파일 또는 링크 실패. F' 프레임워크 모든 라이브러리를 링크했지만 심볼 누락이 있는지 확인하세요."
     exit 1
 fi
 
