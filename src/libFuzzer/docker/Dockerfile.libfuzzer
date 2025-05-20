@@ -41,8 +41,7 @@ RUN mkdir -p build/libfuzzer
 
 # fprime 오토코더 실행 및 빌드 (fprime 서브모듈 내에서 실행)
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime
-RUN mkdir -p build-fprime-automatic-native && \
-    fprime-util generate && \
+RUN fprime-util generate && \
     fprime-util build
 
 # 작업 디렉토리 다시 설정

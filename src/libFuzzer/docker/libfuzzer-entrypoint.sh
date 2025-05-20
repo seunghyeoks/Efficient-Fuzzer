@@ -45,13 +45,13 @@ fi
 
 # fprime 오토코더 빌드 확인 및 필요시 재실행
 echo "=== fprime 오토코더 빌드 확인 ==="
-if [ ! -d "/workspace/Efficient-Fuzzer/build-fprime-automatic-native" ] || [ ! -f "/workspace/Efficient-Fuzzer/build-fprime-automatic-native/Svc/CmdDispatcher/CommandDispatcherComponentAc.hpp" ]; then
+# 빌드 디렉토리는 fprime-util이 자동으로 생성하므로, 빌드 결과물을 확인
+if [ ! -d "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native" ] || [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/Svc/CmdDispatcher/CommandDispatcherComponentAc.hpp" ]; then
     echo "fprime 오토코더 빌드를 시작합니다..."
-    mkdir -p build-fprime-automatic-native
-    cd build-fprime-automatic-native
+    cd /workspace/Efficient-Fuzzer/src/fprime
     fprime-util generate
     fprime-util build
-    cd ..
+    cd /workspace/Efficient-Fuzzer
 else
     echo "✅ fprime 오토코더 빌드가 이미 완료되었습니다."
 fi
@@ -64,7 +64,7 @@ echo "=== libFuzzer 컴파일 시작 ==="
 clang++ -g -O1 -fsanitize=fuzzer,address \
     -I/workspace/Efficient-Fuzzer/src/fprime \
     -I/workspace/Efficient-Fuzzer/src \
-    -I/workspace/Efficient-Fuzzer/build-fprime-automatic-native \
+    -I/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native \
     /workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp \
     /workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp \
     -o cmd_dispatcher_fuzzer
