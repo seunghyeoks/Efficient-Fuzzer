@@ -20,6 +20,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
   && rm -rf /var/lib/apt/lists/*
 
+# fprime 빌드 도구 설치
+RUN pip3 install -U fprime-tools fprime-gds
+
 # 작업 디렉토리 설정
 WORKDIR /workspace
 
@@ -33,11 +36,14 @@ WORKDIR /workspace/Efficient-Fuzzer
 RUN git submodule init && \
     git submodule update --recursive
 
-# 프로젝트 디렉토리로 이동
-WORKDIR /workspace/Efficient-Fuzzer
-
 # 컴파일용 디렉토리 생성
 RUN mkdir -p build/libfuzzer
+
+# fprime 오토코더 실행 및 빌드
+RUN mkdir -p build-fprime-automatic-native && \
+    cd build-fprime-automatic-native && \
+    fprime-util generate && \
+    fprime-util build
 
 # libFuzzer 진입점 스크립트 복사
 COPY ./libFuzzer/docker/libfuzzer-entrypoint.sh /usr/local/bin/entrypoint.sh
