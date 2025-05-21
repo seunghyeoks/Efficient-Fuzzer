@@ -22,6 +22,8 @@ FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime -I/workspac
 echo "=== ActiveTestGTestBase.hpp 경로 검색 ==="
 find /workspace/Efficient-Fuzzer -name '*GTestBase.hpp' || echo "ActiveTestGTestBase.hpp 파일을 찾을 수 없습니다."
 
+fprime-util generate --ut
+fprime-util impl --ut
 
 echo "=== 라이브러리 디렉토리 확인 ==="
 echo "라이브러리 경로: $LIB_DIR"
