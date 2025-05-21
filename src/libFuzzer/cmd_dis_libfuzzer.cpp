@@ -86,6 +86,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         
         isInitialized = true;
         fprintf(stderr, "[fuzz] Harness initialized\n");
+
+        // === 정상 입력 테스트 코드 추가 ===
+        // 0x1001 명령어, 인자 없음
+        uint8_t normalInput[4];
+        FwOpcodeType opcode = 0x1001;
+        memcpy(normalInput, &opcode, sizeof(FwOpcodeType));
+        int result = harness.processFuzzedInput(normalInput, sizeof(normalInput));
+        fprintf(stderr, "[fuzz] 정상 입력 테스트 결과: %d\n", result);
+        // ================================
     }
     
     // setjmp를 사용하여 assert 발생 시 이 지점으로 돌아올 수 있게 함
