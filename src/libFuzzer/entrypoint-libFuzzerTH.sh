@@ -3,13 +3,13 @@ set -e
 
 echo "=== F-Prime CmdDispatcher LibFuzzer 시작 ==="
 
-find /workspace/Efficient-Fuzzer -name 'CommandDispatcherGTestBase.hpp'
-find /workspace/Efficient-Fuzzer -name 'ActiveTestGTestBase.hpp'
-
-# CmdDispatcher 컴포넌트 디렉토리에서 오토코더 실행
-cd /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher
-fprime-util generate --ut
-fprime-util impl --ut
+# build-fprime-automatic-native-ut 하위 파일 전체 출력
+if [ -d "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut" ]; then
+    echo "=== build-fprime-automatic-native-ut 디렉토리 구조 ==="
+    find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut | sort
+else
+    echo "build-fprime-automatic-native-ut 디렉토리가 존재하지 않습니다."
+fi
 
 # 빌드 디렉토리로 이동
 mkdir -p /workspace/Efficient-Fuzzer/build/libfuzzer
