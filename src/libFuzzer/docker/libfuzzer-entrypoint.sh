@@ -9,6 +9,24 @@ fi
 
 # fprime 큐 구현을 default에서 posix로 변경
 export OS_QUEUE_PLATFORM=posix
+echo "=== 환경 설정 ==="
+echo "OS_QUEUE_PLATFORM=${OS_QUEUE_PLATFORM}"
+
+# 디버깅을 위한 /dev/mqueue 마운트 확인
+if [ -d "/dev/mqueue" ]; then
+    echo "✅ /dev/mqueue가 마운트되었습니다."
+    ls -la /dev/mqueue
+else
+    echo "❌ /dev/mqueue가 마운트되지 않았습니다. 마운트 시도 중..."
+    mkdir -p /dev/mqueue
+    mount -t mqueue none /dev/mqueue
+    if [ $? -eq 0 ]; then
+        echo "✅ /dev/mqueue 마운트 성공"
+        ls -la /dev/mqueue
+    else
+        echo "❌ /dev/mqueue 마운트 실패. privileged 모드가 필요할 수 있습니다."
+    fi
+fi
 
 cd /workspace/Efficient-Fuzzer
 
@@ -134,11 +152,15 @@ SNPRINTF_SRC=(/workspace/Efficient-Fuzzer/src/fprime/Fw/Types/snprintf_format.cp
 SYS_LIBS="-lpthread -ldl -lrt -lm -lstdc++ -lutil"
 
 # 컴파일러 및 링커 플래그 설정
-CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -fsanitize-recover=all -std=c++14 -fvisibility=default"
+CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -fsanitize-recover=all -std=c++14 -fvisibility=default -DOS_QUEUE_PLATFORM_POSIX"
 LDFLAGS="-Wl,-z,defs -Wl,--no-as-needed"
 
 # stub 코드 소스 추가
 STUB_SOURCES=(/workspace/Efficient-Fuzzer/src/fprime/Os/Stub/*.cpp)
+
+# 컴파일하기 전에 OS_QUEUE_PLATFORM 다시 확인
+echo "=== 컴파일 전 환경 확인 ==="
+echo "OS_QUEUE_PLATFORM=${OS_QUEUE_PLATFORM}"
 
 # libFuzzer 컴파일 및 링크 (stub 코드 및 stringFormat 소스 포함)
 echo "=== libFuzzer 컴파일 및 링크 ==="

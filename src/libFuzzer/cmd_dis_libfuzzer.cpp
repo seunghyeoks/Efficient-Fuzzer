@@ -5,6 +5,7 @@
 #include <cassert>
 #include "harness/CmdDispatcherHarness.hpp"
 #include <Fw/Types/Assert.hpp>
+#include <unistd.h> // getenv 함수 사용을 위해 추가
 
 // 전역 변수로 longjmp를 위한 환경 설정
 thread_local jmp_buf s_jumpBuffer;
@@ -56,6 +57,14 @@ static FuzzAssertHook g_fuzzAssertHook;
 
 __attribute__((constructor))
 void setup_signal_handler() {
+    // 환경 변수 확인 및 설정
+    const char* queuePlatform = getenv("OS_QUEUE_PLATFORM");
+    fprintf(stderr, "[fuzz] OS_QUEUE_PLATFORM=%s\n", queuePlatform ? queuePlatform : "not set");
+    
+    // 명시적으로 환경 변수 설정 (이미 설정되어 있더라도 덮어씀)
+    setenv("OS_QUEUE_PLATFORM", "posix", 1);
+    fprintf(stderr, "[fuzz] OS_QUEUE_PLATFORM 환경 변수를 'posix'로 설정\n");
+    
     signal(SIGABRT, handle_abort);
     // 다른 치명적인 신호도 처리
     signal(SIGSEGV, handle_abort);
@@ -66,6 +75,14 @@ void setup_signal_handler() {
 
 // libFuzzer 퍼징 진입점
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
+    // OS_QUEUE_PLATFORM 확인
+    const char* queuePlatform = getenv("OS_QUEUE_PLATFORM");
+    if (!queuePlatform || strcmp(queuePlatform, "posix") != 0) {
+        fprintf(stderr, "[fuzz] 경고: OS_QUEUE_PLATFORM이 'posix'가 아닙니다: %s\n", 
+                queuePlatform ? queuePlatform : "not set");
+        setenv("OS_QUEUE_PLATFORM", "posix", 1);
+    }
+    
     // 정적 하네스 인스턴스 - 매번 재생성하지 않고 재사용
     static CmdDispatcherHarness harness("FuzzHarness");
     static bool isInitialized = false;
@@ -73,7 +90,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     
     // 최초 1회만 초기화 수행
     if (!isInitialized) {
-        harness.initialize(10, 10);
+        // 초기화 전 환경 변수 다시 확인
+        fprintf(stderr, "[fuzz] 초기화 직전 OS_QUEUE_PLATFORM=%s\n", 
+                getenv("OS_QUEUE_PLATFORM") ? getenv("OS_QUEUE_PLATFORM") : "not set");
+        
+        // 하네스 초기화 (명령 큐 크기와 최대 등록수 줄임)
+        harness.initialize(5, 5);
         testComp.init();
         harness.registerTestComponent(0, &testComp);
         
@@ -86,7 +108,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         
         isInitialized = true;
         fprintf(stderr, "[fuzz] Harness initialized\n");
-        fprintf(stderr, "[fuzz] queueDepth=10, maxRegistrations=10\n");
+        fprintf(stderr, "[fuzz] queueDepth=5, maxRegistrations=5\n");
 
         // === 정상 입력 테스트 코드 수정 ===
         fprintf(stderr, "[fuzz] 정상 입력 테스트 시작\n");
