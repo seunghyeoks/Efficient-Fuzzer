@@ -131,7 +131,7 @@ SNPRINTF_SRC=(/workspace/Efficient-Fuzzer/src/fprime/Fw/Types/snprintf_format.cp
 SYS_LIBS="-lpthread -ldl -lrt -lm -lstdc++ -lutil"
 
 # 컴파일러 및 링커 플래그 설정
-CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -std=c++14 -fvisibility=default"
+CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -fsanitize-recover=all -std=c++14 -fvisibility=default"
 LDFLAGS="-Wl,-z,defs -Wl,--no-as-needed"
 
 # stub 코드 소스 추가
@@ -175,8 +175,9 @@ echo "=== libFuzzer 실행 시작 ==="
 mkdir -p findings
 mkdir -p corpus_backup # 코퍼스 백업 디렉토리 추가
 
-# 더 많은 디버깅 정보 출력
-export ASAN_OPTIONS="detect_leaks=0:allocator_may_return_null=1:print_scariness=1:handle_abort=1"
+# 더 많은 디버깅 정보 출력 및 어서트 처리 설정
+export ASAN_OPTIONS="detect_leaks=0:allocator_may_return_null=1:print_scariness=1:handle_abort=1:handle_sigill=1:handle_sigfpe=1:abort_on_error=0:start_deactivated=0:strict_string_checks=0"
+export UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=0"
 
 ./cmd_dispatcher_fuzzer -max_len=1024 \
                        -artifact_prefix=findings/ \
@@ -187,6 +188,7 @@ export ASAN_OPTIONS="detect_leaks=0:allocator_may_return_null=1:print_scariness=
                        -error_exitcode=0 \
                        -rss_limit_mb=4096 \
                        -print_final_stats=1 \
+                       -fork=1 \
                        -runs=-1 \
                        corpus &
 FUZZER_PID=$!
@@ -224,6 +226,7 @@ while true; do
                               -error_exitcode=0 \
                               -rss_limit_mb=4096 \
                               -print_final_stats=1 \
+                              -fork=1 \
                               -runs=-1 \
                               corpus &
         FUZZER_PID=$!
