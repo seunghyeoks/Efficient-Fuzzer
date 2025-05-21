@@ -52,7 +52,7 @@ fi
 # fprime 도구 설치 확인 및 설치
 echo "=== fprime 도구 설치 확인 ==="
 # fprime 패키지가 이미 설치되어 있는지 먼저 확인
-if pip list | grep -q "fprime-tools"; then
+if pip list -q | grep -q "fprime-tools"; then
     echo "✅ fprime 도구가 이미 설치되어 있습니다."
 elif command -v fprime-fpp-to-xml > /dev/null 2>&1; then
     echo "✅ fprime fpp 도구가 이미 설치되어 있습니다."
@@ -222,7 +222,6 @@ while true; do
                               -ignore_ooms=1 \
                               -timeout=1 \
                               -error_exitcode=0 \
-                              -keep_going=1 \
                               -rss_limit_mb=4096 \
                               -print_final_stats=1 \
                               -runs=-1 \
