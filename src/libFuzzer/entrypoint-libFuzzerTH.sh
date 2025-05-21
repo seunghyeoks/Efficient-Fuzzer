@@ -3,6 +3,14 @@ set -e
 
 echo "=== F-Prime CmdDispatcher LibFuzzer 시작 ==="
 
+find /workspace/Efficient-Fuzzer -name 'CommandDispatcherGTestBase.hpp'
+find /workspace/Efficient-Fuzzer -name 'ActiveTestGTestBase.hpp'
+
+# CmdDispatcher 컴포넌트 디렉토리에서 오토코더 실행
+cd /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher
+fprime-util generate --ut
+fprime-util impl --ut
+
 # 빌드 디렉토리로 이동
 mkdir -p /workspace/Efficient-Fuzzer/build/libfuzzer
 cd /workspace/Efficient-Fuzzer/build/libfuzzer
