@@ -51,9 +51,9 @@ fi
 
 # fprime 도구 설치 확인 및 설치
 echo "=== fprime 도구 설치 확인 ==="
-# fprime 패키지가 이미 설치되어 있는지 먼저 확인
-if pip list -q | grep -q "fprime-tools"; then
-    echo "✅ fprime 도구가 이미 설치되어 있습니다."
+# Python을 사용하여 패키지 존재 확인 (파이프 사용하지 않음)
+if python3 -c "import sys, importlib.util; sys.exit(0 if importlib.util.find_spec('fprime') is not None else 1)" 2>/dev/null; then
+    echo "✅ fprime 패키지가 이미 설치되어 있습니다."
 elif command -v fprime-fpp-to-xml > /dev/null 2>&1; then
     echo "✅ fprime fpp 도구가 이미 설치되어 있습니다."
 else
