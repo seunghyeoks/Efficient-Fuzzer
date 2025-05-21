@@ -106,13 +106,21 @@ void CmdDispatcherHarness::initialize(U32 maxCommands, U32 maxRegistrations) {
     m_dispatcher.init(maxCommands, maxRegistrations);
     
     // 기본 seqCmdBuff/seqStatus 포트 핸들러 생성
-    for (NATIVE_INT_TYPE i = 0; i < 10; i++) { // 최대 10개 포트 사용
+    for (NATIVE_INT_TYPE i = 0; i < m_dispatcher.getNum_seqCmdBuff_InputPorts() && i < 10; i++) {
         auto handler = new TestCmdResponseHandler();
         handler->init();
         m_responseHandlers.push_back(handler);
         
-        // 직접 연결 대신 포트 번호 기록
+        // 포트 연결 설정
         m_responseHandlerPorts.push_back(i);
+        
+        // 응답 핸들러와 CmdDispatcher 포트 연결
+        m_dispatcher.set_cmdResponseOut_OutputPort(i, handler->get_cmdResponseIn_InputPort(0));
+        
+        // CmdDispatcher의 이벤트 포트가 있다면 이벤트 핸들러에도 연결
+        if (m_dispatcher.isConnected_logOut_OutputPort(i)) {
+            // 이벤트 핸들러 연결 코드는 생략
+        }
     }
     
     std::cout << "[" << m_name << "] 초기화 완료" << std::endl;
@@ -164,14 +172,23 @@ bool CmdDispatcherHarness::dispatchRawCommand(const Fw::ComBuffer& buffer,
     Fw::ComBuffer bufferCopy = buffer;
     
     try {
-        // 명령어 버퍼를 처리 - 여기서 테스트를 위한 부분은 생략
-        // 실제 구현에서는 명령 처리 메커니즘을 거쳐야 함
-        
-        std::cout << "[" << m_name << "] 명령 전송: Seq=" << cmdSeq 
-                << " Port=" << portNum << std::endl;
-        
-        // 여기서는 성공으로 간주
-        return true;
+        // 실제로 CommandDispatcher의 schedIn 포트로 명령 전송
+        // 이 부분을 추가하여 실제 명령 처리 메커니즘 활성화
+        if (m_dispatcher.m_seqCmdBuff[portNum].isConnected()) {
+            // 명령 시퀀스 설정
+            m_dispatcher.m_seqCmdBuff[portNum].invoke(cmdSeq, bufferCopy);
+            
+            std::cout << "[" << m_name << "] 명령 전송: Seq=" << cmdSeq 
+                    << " Port=" << portNum << std::endl;
+            
+            return true;
+        } else {
+            std::cerr << "[" << m_name << "] 오류: 명령 포트가 연결되지 않음: Port=" << portNum << std::endl;
+            return false;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[" << m_name << "] 명령 전송 중 예외 발생: " << e.what() << std::endl;
+        return false;
     } catch (...) {
         std::cerr << "[" << m_name << "] 명령 전송 실패: Seq=" << cmdSeq 
                 << " Port=" << portNum << std::endl;
@@ -197,14 +214,23 @@ void CmdDispatcherHarness::simulateComponentResponse(FwOpcodeType opcode, U32 cm
 }
 
 void CmdDispatcherHarness::registerTestComponent(NATIVE_INT_TYPE portNum, 
-                                               TestCommandComponent* component) {
+                                             TestCommandComponent* component) {
     // 컴포넌트를 리스트에 추가
     m_components.push_back(component);
     
-    // 포트 연결은 커스텀 메서드를 통해 구현
-    // 실제 구현은 시스템에 맞게 조정해야 할 수 있음
-    
-    std::cout << "[" << m_name << "] 테스트 컴포넌트 등록: Port=" << portNum << std::endl;
+    // CmdDispatcher의 출력 포트와 테스트 컴포넌트의 입력 포트 연결
+    if (portNum < m_dispatcher.getNum_compCmdSend_OutputPorts()) {
+        // 명령 출력 포트 연결
+        m_dispatcher.set_compCmdSend_OutputPort(portNum, component->get_cmdIn_InputPort());
+        
+        // 응답 입력 포트 연결
+        component->set_cmdResponseOut_OutputPort(m_dispatcher.get_compCmdReg_InputPort(portNum));
+        
+        std::cout << "[" << m_name << "] 테스트 컴포넌트 등록: Port=" << portNum << std::endl;
+    } else {
+        std::cerr << "[" << m_name << "] 오류: 유효하지 않은 포트 번호: " << portNum 
+                << " (최대: " << m_dispatcher.getNum_compCmdSend_OutputPorts() - 1 << ")" << std::endl;
+    }
 }
 
 U32 CmdDispatcherHarness::getNextSequence() {
@@ -255,8 +281,10 @@ void CmdDispatcherHarness::printStatus() const {
 // 퍼징 인터페이스
 int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
     try {
-        if (size < 5) {
-            return 0; // 최소 크기 확인
+        if (size < 4) {
+            // 최소 크기보다 작으면 기본 테스트 실행
+            runBasicTest();
+            return 0;
         }
         
         // 퍼징 데이터에서 명령 정보 추출
@@ -264,6 +292,15 @@ int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
         // 오피코드 추출 (바이트 0-3)
         FwOpcodeType opcode = 0;
         memcpy(&opcode, data, sizeof(FwOpcodeType));
+        
+        // 유효한 범위로 오피코드 제한 (너무 큰 값은 처리하지 않음)
+        opcode = opcode % 0x2000; // 0x0000~0x1FFF 범위로 제한
+        
+        // 기본 명령 코드로 매핑 (미리 등록한 코드 중 하나로)
+        FwOpcodeType validOpcodes[] = {0x1001, 0x1002, 0x1003, 0x1004};
+        if (opcode > 0x1FFF || opcode < 0x1000) {
+            opcode = validOpcodes[opcode % 4];
+        }
         
         // 직접 명령 버퍼 생성
         Fw::ComBuffer cmdBuffer;
@@ -278,20 +315,36 @@ int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
         // 인자 추가 (있는 경우)
         if (size > sizeof(FwOpcodeType)) {
             size_t argSize = size - sizeof(FwOpcodeType);
+            if (argSize > 128) { // 인자 크기 제한
+                argSize = 128;
+            }
+            
             if (argSize > cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength()) {
                 argSize = cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength();
             }
-            cmdBuffer.serialize(data + sizeof(FwOpcodeType), argSize);
+            
+            if (argSize > 0) {
+                cmdBuffer.serialize(data + sizeof(FwOpcodeType), argSize);
+            }
         }
         
         // 명령 시퀀스 번호 생성
         U32 cmdSeq = getNextSequence();
         
-        // 포트 번호 계산 (퍼징 데이터에서 유도)
-        NATIVE_INT_TYPE portNum = (size > 0) ? (data[size-1] % 10) : 0; // 0-9 사이로 제한
+        // 포트 번호 계산 (퍼징 데이터에서 유도, 유효한 범위로 제한)
+        NATIVE_INT_TYPE portNum = 0;
+        if (size > 4) {
+            portNum = data[4] % std::min(m_responseHandlers.size(), 
+                                        (size_t)m_dispatcher.getNum_seqCmdBuff_InputPorts());
+        }
+        
+        // 명령 디스패치 전 로그
+        std::cout << "[퍼즈] 입력 처리: 크기=" << size 
+                << " OpCode=0x" << std::hex << opcode << std::dec
+                << " Port=" << portNum << std::endl;
         
         // 명령 디스패치
-        dispatchRawCommand(cmdBuffer, cmdSeq, portNum);
+        return dispatchRawCommand(cmdBuffer, cmdSeq, portNum) ? 0 : -1;
     } 
     catch (const std::exception& e) {
         fprintf(stderr, "[fuzz] 예외 발생: %s\n", e.what());

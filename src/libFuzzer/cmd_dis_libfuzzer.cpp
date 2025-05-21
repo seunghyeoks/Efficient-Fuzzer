@@ -67,12 +67,21 @@ void setup_signal_handler() {
 // libFuzzer 퍼징 진입점
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     static CmdDispatcherHarness harness("FuzzHarness");
-    static bool initialized = false;
-
-    // 첫 호출 시 하네스 초기화
-    if (!initialized) {
-        harness.initialize(100, 100);
-        initialized = true;
+    
+    // 퍼징 동안 하네스를 재사용하지 않고 매번 초기화
+    // 이렇게 하면 이전 퍼징 실행으로 인한 영향을 받지 않음
+    harness.initialize(100, 100);
+    
+    // 테스트 컴포넌트 생성 및 연결
+    TestCommandComponent testComp("TestComponent");
+    testComp.init();
+    harness.registerTestComponent(0, &testComp);
+    
+    // 몇 가지 기본 명령 등록
+    FwOpcodeType validOpcodes[] = {0x1001, 0x1002, 0x1003, 0x1004};
+    for (auto opcode : validOpcodes) {
+        harness.registerCommand(opcode, 0);
+        testComp.setCommandResponse(opcode, Fw::CmdResponse(Fw::CmdResponse::OK));
     }
 
     // setjmp를 사용하여 assert 발생 시 이 지점으로 돌아올 수 있게 함
