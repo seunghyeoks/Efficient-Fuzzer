@@ -46,6 +46,7 @@ RUN mkdir -p build/libfuzzer
 # fprime 오토코더 실행 및 빌드 (fprime 서브모듈 내에서 실행)
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime
 RUN fprime-util generate && fprime-util build
+RUN git submodule update --init --recursive
 
 # CmdDispatcher 테스트 하네스 생성
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher
