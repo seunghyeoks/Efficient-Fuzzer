@@ -7,6 +7,8 @@ services:
     volumes:
       - ../..:/workspace/local-code
       - libfuzzer-findings:/workspace/Efficient-Fuzzer/build/libfuzzer/findings
+      - type: tmpfs
+        target: /dev/mqueue
     tty: true
     stdin_open: true
     # AFL++ 및 Boofuzz 컨테이너는 나중에 추가
