@@ -57,7 +57,8 @@ RUN fprime-util impl --ut
 WORKDIR /workspace/Efficient-Fuzzer
 
 # libFuzzer 진입점 스크립트 복사
-COPY ./libFuzzer2/entrypoint-libfuzzerTH.sh /usr/local/bin/entrypoint.sh
+COPY libFuzzer2/entrypoint-libfuzzerTH.sh /usr/local/bin/entrypoint.sh
+
 # 줄 끝 문자 변환
 RUN dos2unix /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
