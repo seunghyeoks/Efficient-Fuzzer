@@ -51,7 +51,10 @@ fi
 
 # fprime 도구 설치 확인 및 설치
 echo "=== fprime 도구 설치 확인 ==="
-if command -v fprime-fpp-to-xml > /dev/null 2>&1; then
+# fprime 패키지가 이미 설치되어 있는지 먼저 확인
+if pip list | grep -q "fprime-tools"; then
+    echo "✅ fprime 도구가 이미 설치되어 있습니다."
+elif command -v fprime-fpp-to-xml > /dev/null 2>&1; then
     echo "✅ fprime fpp 도구가 이미 설치되어 있습니다."
 else
     echo "fprime fpp 도구를 설치합니다..."
@@ -85,6 +88,10 @@ if [ ! -f "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/
 else
     echo "✅ fprime 오토코더 빌드가 확인되었습니다."
 fi
+
+
+
+
 
 # 빌드 디렉토리로 이동
 mkdir -p build/libfuzzer
@@ -149,6 +156,12 @@ fi
 
 echo "✅ 컴파일 성공!"
 
+
+
+
+
+
+
 # 코퍼스 디렉토리 생성
 mkdir -p corpus
 
@@ -172,7 +185,6 @@ export ASAN_OPTIONS="detect_leaks=0:allocator_may_return_null=1:print_scariness=
                        -ignore_ooms=1 \
                        -timeout=1 \
                        -error_exitcode=0 \
-                       -keep_going=1 \
                        -rss_limit_mb=4096 \
                        -print_final_stats=1 \
                        -runs=-1 \
