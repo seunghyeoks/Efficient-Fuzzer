@@ -1,6 +1,8 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+# fprime 큐 구현을 default에서 posix로 변경
+ENV OS_QUEUE_PLATFORM=posix
 
 # 기본 시스템 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \

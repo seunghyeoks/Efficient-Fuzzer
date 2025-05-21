@@ -7,6 +7,9 @@ elif command -v sed > /dev/null 2>&1; then
 fi
 # 오류가 발생해도 스크립트가 계속 실행되도록 set -e 제거
 
+# fprime 큐 구현을 default에서 posix로 변경
+export OS_QUEUE_PLATFORM=posix
+
 cd /workspace/Efficient-Fuzzer
 
 # 파일 존재 확인

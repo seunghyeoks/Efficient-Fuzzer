@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: libFuzzer/docker/Dockerfile.libfuzzer
     container_name: fprime_libfuzzer
+    privileged: true
     volumes:
       - ../..:/workspace/local-code
       - libfuzzer-findings:/workspace/Efficient-Fuzzer/build/libfuzzer/findings
