@@ -19,12 +19,6 @@ LIB_DIR="${FPRIME_BUILD_DIR}/lib/Linux"
 # fprime 헤더 파일 경로 추가
 FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime -I/workspace/Efficient-Fuzzer/src/fprime"
 
-echo "=== ActiveTestGTestBase.hpp 경로 검색 ==="
-find /workspace/Efficient-Fuzzer -name '*GTestBase.hpp' || echo "ActiveTestGTestBase.hpp 파일을 찾을 수 없습니다."
-
-fprime-util generate --ut
-fprime-util impl --ut
-
 echo "=== 라이브러리 디렉토리 확인 ==="
 echo "라이브러리 경로: $LIB_DIR"
 
@@ -52,6 +46,7 @@ echo "=== libFuzzer 컴파일 및 링크 ==="
 clang++ ${CXXFLAGS} \
     ${INCLUDE_DIRS} \
     ${FPRIME_INCLUDES} \
+    -I/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut \
     /workspace/Efficient-Fuzzer/src/libFuzzer/libFuzzer_main.cpp \
     /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher/test/ut/CommandDispatcherTester.cpp \
     "${SNPRINTF_SRC[@]}" \
