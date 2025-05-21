@@ -73,7 +73,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     
     // 최초 1회만 초기화 수행
     if (!isInitialized) {
-        harness.initialize(100, 100);
+        harness.initialize(10, 10);
         testComp.init();
         harness.registerTestComponent(0, &testComp);
         
@@ -86,14 +86,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         
         isInitialized = true;
         fprintf(stderr, "[fuzz] Harness initialized\n");
+        fprintf(stderr, "[fuzz] queueDepth=10, maxRegistrations=10\n");
 
-        // === 정상 입력 테스트 코드 추가 ===
+        // === 정상 입력 테스트 코드 수정 ===
+        fprintf(stderr, "[fuzz] 정상 입력 테스트 시작\n");
         // 0x1001 명령어, 인자 없음
-        uint8_t normalInput[4];
-        FwOpcodeType opcode = 0x1001;
-        memcpy(normalInput, &opcode, sizeof(FwOpcodeType));
-        int result = harness.processFuzzedInput(normalInput, sizeof(normalInput));
+        Fw::ComBuffer normalBuffer = harness.createCommandBuffer(0x1001);
+        int result = harness.processFuzzedInput(normalBuffer.getBuffAddr(), normalBuffer.getBuffLength());
         fprintf(stderr, "[fuzz] 정상 입력 테스트 결과: %d\n", result);
+        fprintf(stderr, "[fuzz] 정상 입력 테스트 종료\n");
         // ================================
     }
     
