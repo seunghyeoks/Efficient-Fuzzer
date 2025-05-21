@@ -56,8 +56,8 @@ RUN fprime-util impl --ut
 # 작업 디렉토리 다시 설정
 WORKDIR /workspace/Efficient-Fuzzer
 
-# libFuzzer 진입점 스크립트 복사
-COPY libFuzzer2/entrypoint-libfuzzerTH.sh /usr/local/bin/entrypoint.sh
+# libFuzzer 진입점 스크립트 복사 (COPY 명령어 대신 클론된 저장소에서 복사)
+RUN cp /workspace/Efficient-Fuzzer/src/libFuzzer2/entrypoint-libfuzzerTH.sh /usr/local/bin/entrypoint.sh
 
 # 줄 끝 문자 변환
 RUN dos2unix /usr/local/bin/entrypoint.sh

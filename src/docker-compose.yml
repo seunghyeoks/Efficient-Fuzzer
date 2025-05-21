@@ -1,8 +1,8 @@
 services:
   libfuzzer:
     build:
-      context: .
-      dockerfile: libFuzzer2/Dockerfile.libfuzzer-TH
+      context: ./libFuzzer2
+      dockerfile: Dockerfile.libfuzzer-TH
     container_name: fprime_libfuzzer-TH
     privileged: true
     volumes:
