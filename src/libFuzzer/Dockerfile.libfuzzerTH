@@ -19,8 +19,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     curl \
     dos2unix \
-    librt-dev \
-    libcap2-bin \
   && rm -rf /var/lib/apt/lists/*
 
 # fprime 빌드 도구 설치
