@@ -20,10 +20,7 @@ LIB_DIR="${FPRIME_BUILD_DIR}/lib/Linux"
 FPRIME_INCLUDES="-I${FPRIME_BUILD_DIR} -I${FPRIME_BUILD_DIR}/F-Prime -I/workspace/Efficient-Fuzzer/src/fprime"
 
 echo "=== ActiveTestGTestBase.hpp 경로 검색 ==="
-find /workspace/Efficient-Fuzzer -name ActiveTestGTestBase.hpp || echo "ActiveTestGTestBase.hpp 파일을 찾을 수 없습니다."
-
-echo "=== CommandDispatcherGTestBase.hpp 경로 검색 ==="
-find /workspace/Efficient-Fuzzer -name CommandDispatcherGTestBase.hpp || echo "CommandDispatcherGTestBase.hpp 파일을 찾을 수 없습니다."
+find /workspace/Efficient-Fuzzer -name '*GTestBase.hpp' || echo "ActiveTestGTestBase.hpp 파일을 찾을 수 없습니다."
 
 
 echo "=== 라이브러리 디렉토리 확인 ==="
