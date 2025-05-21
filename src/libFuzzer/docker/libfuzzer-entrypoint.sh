@@ -7,8 +7,8 @@ elif command -v sed > /dev/null 2>&1; then
 fi
 # 오류가 발생해도 스크립트가 계속 실행되도록 set -e 제거
 
-# fprime 큐 구현을 default에서 posix로 변경
-export OS_QUEUE_PLATFORM=posix
+# fprime 큐 구현을 generic으로 변경
+export OS_QUEUE_PLATFORM=generic
 echo "=== 환경 설정 ==="
 echo "OS_QUEUE_PLATFORM=${OS_QUEUE_PLATFORM}"
 
@@ -152,7 +152,7 @@ SNPRINTF_SRC=(/workspace/Efficient-Fuzzer/src/fprime/Fw/Types/snprintf_format.cp
 SYS_LIBS="-lpthread -ldl -lrt -lm -lstdc++ -lutil"
 
 # 컴파일러 및 링커 플래그 설정
-CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -fsanitize-recover=all -std=c++14 -fvisibility=default -DOS_QUEUE_PLATFORM_POSIX"
+CXXFLAGS="-g -O1 -fsanitize=fuzzer,address -fsanitize-recover=all -std=c++14 -fvisibility=default -DOS_QUEUE_PLATFORM=generic"
 LDFLAGS="-Wl,-z,defs -Wl,--no-as-needed"
 
 # stub 코드 소스 추가
