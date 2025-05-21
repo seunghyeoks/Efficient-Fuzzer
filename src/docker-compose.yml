@@ -1,9 +1,9 @@
 services:
   libfuzzer:
     build:
-      context: ./libFuzzer2
-      dockerfile: Dockerfile.libfuzzer-TH
-    container_name: fprime_libfuzzer-TH
+      context: ./libFuzzer
+      dockerfile: Dockerfile.libfuzzerTH
+    container_name: fprime_libfuzz
     privileged: true
     volumes:
       - ../..:/workspace/local-code
