@@ -46,8 +46,8 @@ echo "=== libFuzzer 컴파일 및 링크 ==="
 clang++ ${CXXFLAGS} \
     ${INCLUDE_DIRS} \
     ${FPRIME_INCLUDES} \
-    /workspace/Efficient-Fuzzer/src/libFuzzer2/libFuzzer_main.cpp \
-    /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher/test/ut/Tester.cpp \
+    /workspace/Efficient-Fuzzer/src/libFuzzer/libFuzzer_main.cpp \
+    /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher/test/ut/CommandDispatcherTester.cpp \
     "${SNPRINTF_SRC[@]}" \
     ${LDFLAGS} -Wl,--whole-archive ${ALL_LIBS[@]} -Wl,--no-whole-archive ${SYS_LIBS} \
     -o cmd_dispatcher_fuzzer
