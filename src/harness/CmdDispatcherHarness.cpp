@@ -135,7 +135,7 @@ Fw::ComBuffer CmdDispatcherHarness::createCommandBuffer(FwOpcodeType opcode,
     // F Prime 명령 패킷 형식에 맞게 버퍼 구성 (직접 직렬화)
     
     // 패킷 타입: FW_PACKET_COMMAND (일반적으로 0)
-    const FwPacketDescriptorType CMD_PACKET_TYPE = Fw::ComPacket::FW_PACKET_COMMAND;
+    const U32 CMD_PACKET_TYPE = static_cast<U32>(Fw::ComPacket::FW_PACKET_COMMAND);
     buffer.serialize(CMD_PACKET_TYPE);
     
     // 명령 코드
@@ -168,12 +168,13 @@ bool CmdDispatcherHarness::dispatchRawCommand(const Fw::ComBuffer& buffer,
         std::cout << "[" << m_name << "] 명령 전송: Seq=" << cmdSeq 
                 << " Port=" << portNum << std::endl;
         
-        // 버퍼에서 데이터 추출하여 CmdPacket 생성
-        Fw::ComPacket::ComPacketType packetType;
-        bufferCopy.deserialize(packetType);
+        // 버퍼에서 데이터 추출하여 패킷 타입 확인
+        U32 packetTypeU32 = 0;
+        bufferCopy.deserialize(packetTypeU32);
         
-        if (packetType != Fw::ComPacket::FW_PACKET_COMMAND) {
-            std::cerr << "[" << m_name << "] 오류: 유효하지 않은 패킷 타입: " << packetType << std::endl;
+        // 패킷 타입이 명령인지 확인
+        if (packetTypeU32 != static_cast<U32>(Fw::ComPacket::FW_PACKET_COMMAND)) {
+            std::cerr << "[" << m_name << "] 오류: 유효하지 않은 패킷 타입: " << packetTypeU32 << std::endl;
             return false;
         }
         
@@ -181,7 +182,7 @@ bool CmdDispatcherHarness::dispatchRawCommand(const Fw::ComBuffer& buffer,
         // 여기서는 명령 처리 메커니즘을 직접 사용하지 않고 시뮬레이션함
         
         // 패킷에서 opcCode 추출
-        FwOpcodeType opCode;
+        FwOpcodeType opCode = 0;
         bufferCopy.deserialize(opCode);
         
         std::cout << "[" << m_name << "] 명령 정보: OpCode=0x" << std::hex << opCode 
@@ -303,7 +304,7 @@ int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
         Fw::ComBuffer cmdBuffer;
         
         // 패킷 타입 (FW_PACKET_COMMAND)
-        const FwPacketDescriptorType CMD_PACKET_TYPE = Fw::ComPacket::FW_PACKET_COMMAND;
+        const U32 CMD_PACKET_TYPE = static_cast<U32>(Fw::ComPacket::FW_PACKET_COMMAND);
         cmdBuffer.serialize(CMD_PACKET_TYPE);
         
         // 명령 코드
