@@ -280,16 +280,22 @@ void CmdDispatcherHarness::printStatus() const {
 int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
     try {
         if (size < 4) {
-            // 최소 크기보다 작으면 기본 테스트 실행
-            runBasicTest();
+            // 최소 크기보다 작으면 0 반환 (오류 없음)
             return 0;
         }
         
-        // 퍼징 데이터에서 명령 정보 추출
+        // 퍼징 데이터에서 안전하게 명령 정보 추출
+        // 데이터를 안전하게 복사하기 위해 벡터 사용
+        std::vector<uint8_t> safeData(data, data + size);
         
-        // 오피코드 추출 (바이트 0-3)
+        // 오피코드 추출 - 안전한 범위 확인 후 처리
         FwOpcodeType opcode = 0;
-        memcpy(&opcode, data, sizeof(FwOpcodeType));
+        if (size >= sizeof(FwOpcodeType)) {
+            // 직접 memcpy 대신 데이터 포인터로부터 값 구성
+            for (size_t i = 0; i < sizeof(FwOpcodeType) && i < size; i++) {
+                opcode |= (static_cast<FwOpcodeType>(safeData[i]) << (i * 8));
+            }
+        }
         
         // 유효한 범위로 오피코드 제한 (너무 큰 값은 처리하지 않음)
         opcode = opcode % 0x2000; // 0x0000~0x1FFF 범위로 제한
@@ -300,29 +306,46 @@ int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
             opcode = validOpcodes[opcode % 4];
         }
         
-        // 직접 명령 버퍼 생성
+        // 직접 명령 버퍼 생성 - 버퍼 용량 제한 확인
         Fw::ComBuffer cmdBuffer;
         
         // 패킷 타입 (FW_PACKET_COMMAND)
         const U32 CMD_PACKET_TYPE = static_cast<U32>(Fw::ComPacket::FW_PACKET_COMMAND);
-        cmdBuffer.serialize(CMD_PACKET_TYPE);
+        Fw::SerializeStatus status = cmdBuffer.serialize(CMD_PACKET_TYPE);
+        if (status != Fw::FW_SERIALIZE_OK) {
+            fprintf(stderr, "[fuzz] 패킷 타입 직렬화 실패: %d\n", status);
+            return 0;
+        }
         
         // 명령 코드
-        cmdBuffer.serialize(opcode);
+        status = cmdBuffer.serialize(opcode);
+        if (status != Fw::FW_SERIALIZE_OK) {
+            fprintf(stderr, "[fuzz] 명령 코드 직렬화 실패: %d\n", status);
+            return 0;
+        }
         
-        // 인자 추가 (있는 경우)
+        // 인자 추가 (있는 경우) - 안전하게 처리
         if (size > sizeof(FwOpcodeType)) {
             size_t argSize = size - sizeof(FwOpcodeType);
-            if (argSize > 128) { // 인자 크기 제한
+            
+            // 버퍼 용량 확인
+            size_t remainingCapacity = cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength();
+            if (argSize > remainingCapacity) {
+                argSize = remainingCapacity;
+            }
+            
+            // 인자 크기 제한 (너무 큰 데이터는 문제 발생 가능)
+            if (argSize > 128) {
                 argSize = 128;
             }
             
-            if (argSize > cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength()) {
-                argSize = cmdBuffer.getBuffCapacity() - cmdBuffer.getBuffLength();
-            }
-            
             if (argSize > 0) {
-                cmdBuffer.serialize(data + sizeof(FwOpcodeType), argSize);
+                // 직접 버퍼에 쓰기보다 직렬화 API 사용
+                status = cmdBuffer.serialize(&safeData[sizeof(FwOpcodeType)], argSize);
+                if (status != Fw::FW_SERIALIZE_OK) {
+                    fprintf(stderr, "[fuzz] 인자 직렬화 실패: %d\n", status);
+                    // 실패해도, 이미 생성된 명령어 버퍼로 계속 진행
+                }
             }
         }
         
@@ -331,14 +354,9 @@ int CmdDispatcherHarness::processFuzzedInput(const uint8_t* data, size_t size) {
         
         // 포트 번호 계산 (퍼징 데이터에서 유도, 유효한 범위로 제한)
         NATIVE_INT_TYPE portNum = 0;
-        if (size > 4) {
-            portNum = data[4] % std::min(m_responseHandlers.size(), (size_t)10);
+        if (size > 4 && !m_responseHandlers.empty()) {
+            portNum = safeData[4] % std::min(m_responseHandlers.size(), (size_t)10);
         }
-        
-        // 명령 디스패치 전 로그
-        std::cout << "[퍼즈] 입력 처리: 크기=" << size 
-                << " OpCode=0x" << std::hex << opcode << std::dec
-                << " Port=" << portNum << std::endl;
         
         // 명령 디스패치
         return dispatchRawCommand(cmdBuffer, cmdSeq, portNum) ? 0 : -1;
