@@ -13,7 +13,7 @@ cd /workspace/Efficient-Fuzzer
 echo "=== 소스 파일 확인 ==="
 if [ ! -f "/workspace/Efficient-Fuzzer/src/libFuzzer/cmd_dis_libfuzzer.cpp" ]; then
     echo "❌ 오류: src/libFuzzer/cmd_dis_libfuzzer.cpp 파일이 존재하지 않습니다."
-    echo "브랜치 Week13/Final이 올바르게 클론되었는지 확인하세요."
+    echo "브랜치 Week13/temp이 올바르게 클론되었는지 확인하세요."
     echo "현재 디렉토리 구조:"
     find /workspace/Efficient-Fuzzer -type f -name "*.cpp" | sort
     exit 1
@@ -21,7 +21,7 @@ fi
 
 if [ ! -f "/workspace/Efficient-Fuzzer/src/harness/CmdDispatcherHarness.cpp" ]; then
     echo "❌ 오류: src/harness/CmdDispatcherHarness.cpp 파일이 존재하지 않습니다."
-    echo "브랜치 Week13/Final이 올바르게 클론되었는지 확인하세요."
+    echo "브랜치 Week13/temp이 올바르게 클론되었는지 확인하세요."
     echo "현재 디렉토리 구조:"
     find /workspace/Efficient-Fuzzer -type f -name "*.cpp" | sort
     exit 1
