@@ -116,18 +116,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     
     return 0;
 }
-
-// 메인 함수 - 독립 실행을 위한 코드 (libFuzzer와 별개)
-int main(int argc, char **argv) {
-    // 테스트용 데이터 생성
-    uint8_t testData[100];
-    for (int i = 0; i < 100; i++) {
-        testData[i] = i % 256;
-    }
-    
-    // 수동으로 퍼저 호출
-    LLVMFuzzerTestOneInput(testData, 100);
-    
-    std::cout << "Manual fuzzing test completed." << std::endl;
-    return 0;
-}
