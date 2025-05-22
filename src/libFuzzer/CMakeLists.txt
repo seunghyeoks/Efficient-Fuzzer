@@ -24,7 +24,6 @@ include_directories(
 
 # fprime 라이브러리 경로 명시적으로 추가
 link_directories(/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/lib/Linux)
-link_directories(/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/lib/Linux)
 
 # fprime 라이브러리 경로 자동 탐색
 file(GLOB_RECURSE FPRIME_LIB_DIRS
@@ -53,7 +52,6 @@ target_include_directories(CmdDispatcherFuzzTester PUBLIC
 # 모든 .a 파일 자동 링크
 file(GLOB FPRIME_ALL_LIBS
     "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/lib/Linux/lib*.a"
-    "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/lib/Linux/lib*.a"
 )
 set(FPRIME_LIB_NAMES "")
 foreach(libfile ${FPRIME_ALL_LIBS})
@@ -74,8 +72,14 @@ target_link_libraries(CmdDispatcherFuzzTester PUBLIC
     Fw_Cmd
     Fw_Log
     Svc_Ping
+    Fw_Obj
+    Fw_Logger
     Os
+    Os_Queue_Common
+    Os_Task_Common
+    Os_Mutex_Common
     Os_Mutex_Posix
+    Os_Task_Posix
     gcov
 )
 
