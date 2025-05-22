@@ -103,5 +103,10 @@ target_link_libraries(cmd_fuzzer PRIVATE
     gcov
 )
 
+
+add_library(snprintf-format ${FPRIME_SRC_ROOT}/Fw/Types/snprintf_format.cpp)
+target_link_libraries(CmdDispatcherFuzzTester PUBLIC snprintf-format)
+target_link_libraries(cmd_fuzzer PRIVATE snprintf-format) 
+
 # 설치 설정
-install(TARGETS cmd_fuzzer DESTINATION bin) 
+install(TARGETS cmd_fuzzer DESTINATION bin)
