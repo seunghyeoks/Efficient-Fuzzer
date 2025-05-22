@@ -3,7 +3,7 @@
 #ifndef CMD_DISPATCHER_FUZZ_TESTER_HPP
 #define CMD_DISPATCHER_FUZZ_TESTER_HPP
 
-#include <CommandDispatcherTesterBase.hpp>
+#include "F-Prime/Svc/CmdDispatcher/CommandDispatcherTesterBase.hpp"
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 #include <Fw/Com/ComBuffer.hpp>
 #include <Fw/Com/ComPacket.hpp>
