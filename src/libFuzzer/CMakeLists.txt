@@ -91,6 +91,7 @@ target_link_libraries(CmdDispatcherFuzzTester PUBLIC
     Utils_Hash
     Fw_Logger
     Os_Cpu_Common
+    gcov
 )
 
 # 실행 파일 생성
