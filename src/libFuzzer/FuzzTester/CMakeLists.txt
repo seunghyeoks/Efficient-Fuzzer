@@ -12,6 +12,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/../fprime                   # fprime 소스 및 헤더 루트 (Fw/Types 등)
     ${CMAKE_SOURCE_DIR}/../fprime/config            # fprime 설정 헤더 (FpConfig.hpp 등)
     ${CMAKE_SOURCE_DIR}/../fprime/build-fprime-automatic-native-ut  # fprime UT 자동 생성 헤더
+    ${CMAKE_SOURCE_DIR}/../fprime/cmake/platform/types # PlatformTypes.h
 )
 
 # 소스 파일 목록
