@@ -52,47 +52,12 @@ target_include_directories(CmdDispatcherFuzzTester PUBLIC
 # 모든 .a 파일 자동 링크 (자동 링크 코드 제거)
 # 아래에 명시적으로 라이브러리 추가
 
-target_link_libraries(CmdDispatcherFuzzTester PUBLIC
-    Os_Memory_Linux
-    Os_Console_Common
-    Os_File_Posix
-    Fw_Types
-    Svc_CmdDispatcher
-    Os_Generic_Types
-    Os_Console_Posix
-    Fw_CompQueued
-    Os_Mutex_Posix
-    Fw_Cmd
-    Os_RawTime_Common
-    Fw_Com
-    Fw_Tlm
-    Fw_Port
-    Fw_Prm
-    Os_Generic_PriorityQueue
-    Svc_Ping
-    Fw_Buffer
-    Os_Posix_Shared
-    Fw_Comp
-    Fw_Cfg
-    Fw_Obj
-    Os_File_Common
-    snprintf-format
-    Os_Memory_Common
-    Os_Queue_Common
-    Fw_Log
-    Os_RawTime_Posix
-    config
-    Fw_Time
-    Os_Mutex_Common
-    Os_Task_Common
-    Os_Task_Posix
-    Os_Cpu_Linux
-    Os
-    Utils_Hash
-    Fw_Logger
-    Os_Cpu_Common
-    gcov
+file(GLOB FPRIME_UT_STATIC_LIBS
+    "${FPRIME_UT_ROOT}/lib/Linux/*.a"
+    "${FPRIME_SRC_ROOT}/Svc/CmdDispatcher/build-fprime-automatic-native-ut/lib/Linux/*.a"
 )
+message(STATUS "Linking fprime UT static libs: ${FPRIME_UT_STATIC_LIBS}")
+target_link_libraries(CmdDispatcherFuzzTester PUBLIC ${FPRIME_UT_STATIC_LIBS} gcov)
 
 # 실행 파일 생성
 add_executable(cmd_fuzzer
