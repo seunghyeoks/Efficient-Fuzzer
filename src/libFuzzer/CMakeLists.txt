@@ -49,38 +49,50 @@ target_include_directories(CmdDispatcherFuzzTester PUBLIC
     ${FPRIME_INC_LIST}
 )
 
-# 모든 .a 파일 자동 링크
-file(GLOB FPRIME_ALL_LIBS
-    "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/lib/Linux/lib*.a"
-)
-set(FPRIME_LIB_NAMES "")
-foreach(libfile ${FPRIME_ALL_LIBS})
-    get_filename_component(libname ${libfile} NAME_WE)
-    string(REPLACE "lib" "" libname ${libname})
-    list(APPEND FPRIME_LIB_NAMES ${libname})
-endforeach()
+# 모든 .a 파일 자동 링크 (자동 링크 코드 제거)
+# 아래에 명시적으로 라이브러리 추가
+
 target_link_libraries(CmdDispatcherFuzzTester PUBLIC
-    Svc_CmdDispatcher
-    Fw_CompQueued
-    Fw_Comp
-    Fw_Tlm
-    Fw_Com
-    Fw_Time
-    Fw_Port
+    gtest_main
+    gtest
+    Os_Memory_Linux
+    Os_Console_Common
+    Os_File_Posix
     Fw_Types
-    Fw_Cfg
-    Fw_Cmd
-    Fw_Log
-    Svc_Ping
-    Fw_Obj
-    Fw_Logger
-    Os
-    Os_Queue_Common
-    Os_Task_Common
-    Os_Mutex_Common
+    Svc_CmdDispatcher
+    Os_Generic_Types
+    Os_Console_Posix
+    Fw_CompQueued
     Os_Mutex_Posix
+    Fw_Cmd
+    Os_RawTime_Common
+    Fw_Com
+    Fw_Tlm
+    Fw_Port
+    Fw_Prm
+    Os_Generic_PriorityQueue
+    Svc_Ping
+    Fw_Buffer
+    Os_Posix_Shared
+    Fw_Comp
+    Fw_Cfg
+    Fw_Obj
+    Os_File_Common
+    snprintf-format
+    Os_Memory_Common
+    Os_Queue_Common
+    Fw_Log
+    Os_RawTime_Posix
+    config
+    Fw_Time
+    Os_Mutex_Common
+    Os_Task_Common
     Os_Task_Posix
-    gcov
+    Os_Cpu_Linux
+    Os
+    Utils_Hash
+    Fw_Logger
+    Os_Cpu_Common
 )
 
 # 실행 파일 생성
