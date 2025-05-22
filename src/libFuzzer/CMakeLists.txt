@@ -78,8 +78,8 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 # 아래에 명시적으로 라이브러리 추가
 
 file(GLOB FPRIME_STATIC_LIBS
-    "${FPRIME_SRC_ROOT}/build-fprime-automatic-native/lib/Linux/*.a"
     "${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/*.a"
+    "${FPRIME_SRC_ROOT}/build-fprime-automatic-native/lib/Linux/*.a"
 )
 message(STATUS "Linking all fprime static libs: ${FPRIME_STATIC_LIBS}")
 target_link_libraries(CmdDispatcherFuzzTester PUBLIC ${FPRIME_STATIC_LIBS} gcov)
