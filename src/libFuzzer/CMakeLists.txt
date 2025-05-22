@@ -96,11 +96,14 @@ target_include_directories(cmd_fuzzer PUBLIC
 )
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
-    # fprime static libraries grouped for cyclic dependencies
     -Wl,--start-group
     ${FPRIME_STATIC_LIBS}
+    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Mutex_Posix.a
+    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Queue_Posix.a
+    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Task_Posix.a
     -Wl,--end-group
     gcov
+    snprintf-format
 )
 
 
