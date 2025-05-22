@@ -2,7 +2,7 @@
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 #include <Fw/Com/ComBuffer.hpp>
 #include <Fw/Com/ComPacket.hpp>
-#include <CommandDispatcherTesterBase.hpp>
+#include <build-fprime-automatic-native-ut/F-Prime/Svc/CmdDispatcher/CommandDispatcherTesterBase.hpp>
 
 // 퍼징 전용 테스터 클래스 (GTest 없이)
 class FuzzTester : public Svc::CommandDispatcherTesterBase {
