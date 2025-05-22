@@ -53,8 +53,6 @@ target_include_directories(CmdDispatcherFuzzTester PUBLIC
 # 아래에 명시적으로 라이브러리 추가
 
 target_link_libraries(CmdDispatcherFuzzTester PUBLIC
-    gtest_main
-    gtest
     Os_Memory_Linux
     Os_Console_Common
     Os_File_Posix
