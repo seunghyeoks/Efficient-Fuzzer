@@ -2,73 +2,32 @@
 #include <Svc/CmdDispatcher/CommandDispatcherImpl.hpp>
 #include <Fw/Com/ComBuffer.hpp>
 #include <Fw/Com/ComPacket.hpp>
-// CommandDispatcherTesterBase.hpp가 있다면 포함
-// #include <CommandDispatcherTesterBase.hpp>
+#include <CommandDispatcherTesterBase.hpp>
 
 // 퍼징 전용 테스터 클래스 (GTest 없이)
-class FuzzTester {
+class FuzzTester : public Svc::CommandDispatcherTesterBase {
 public:
-    FuzzTester() : m_impl("CmdDispImpl") {
-        // 초기화
-        m_impl.init(10, 0);
-        
-        // CommandDispatcherTester.cpp의 connectPorts 함수에서 영감을 받은 포트 연결 로직
-        // 명령 입력 포트
-        m_impl.set_compCmdSend_OutputPort(0, 
-            [this](FwOpcodeType opCode, U32 cmdSeq, Fw::CmdArgBuffer &args) {
-                // 명령 처리 결과를 수집할 수 있음
-                m_lastOpCode = opCode;
-                m_lastCmdSeq = cmdSeq;
-            });
-        
-        m_impl.set_seqCmdStatus_OutputPort(0,
-            [this](FwOpcodeType opCode, U32 cmdSeq, const Fw::CmdResponse &response) {
-                // 명령 상태 응답을 추적
-                m_lastStatusOpCode = opCode;
-                m_lastStatusCmdSeq = cmdSeq;
-                m_lastStatusResponse = response;
-            });
-            
-        // CmdReg 포트를 내부 compCmdReg 포트에 연결 (자체 등록용)
-        m_impl.set_CmdReg_OutputPort(0, m_impl.get_compCmdReg_InputPort(1));
-        m_impl.set_CmdStatus_OutputPort(0, m_impl.get_compCmdStat_InputPort(0));
-        
-        // 로깅/텔레메트리 포트도 연결
-        m_impl.set_Tlm_OutputPort(0, [](const Fw::Time& time, U32 id, Fw::TlmBuffer& val) {});
-        m_impl.set_Time_OutputPort(0, [](Fw::Time &time) { time = Fw::Time(); });
-        m_impl.set_Log_OutputPort(0, [](const Fw::Time& time, U32 id, Fw::LogSeverity severity, Fw::LogBuffer& val) {});
-        m_impl.set_LogText_OutputPort(0, [](const Fw::Time& time, U32 id, Fw::LogSeverity severity, const Fw::TextLogString& text) {});
-        
-        // 기본 명령어 등록
-        m_impl.regCommands();
+    FuzzTester() : CommandDispatcherTesterBase("FuzzTester", 100) {
+        this->initComponents();
+        this->connectPorts();
     }
     
-    // 명령 버퍼 주입 메소드
-    void sendCommand(const Fw::ComBuffer& buff, U32 context = 0) {
-        // seqCmdBuff_handler 직접 호출
-        m_impl.seqCmdBuff_handler(0, buff, context);
-        m_impl.doDispatch();
+    // CommandDispatcherImpl에 직접 접근할 필요가 있을 때
+    Svc::CommandDispatcherImpl& getImpl() {
+        return this->component;
     }
     
-    // 상태 확인 메소드들 (ASSERT_* 대신 사용)
-    bool wasCommandHandled() const {
-        return m_lastOpCode != 0;
+    // 명령 전송을 위한 간편한 메소드
+    void sendFuzzedCommand(const Fw::ComBuffer& buff, U32 context = 0) {
+        this->invoke_to_seqCmdBuff(0, buff, context);
+        this->component.doDispatch();
     }
     
-    bool wasCommandSuccessful() const {
-        return m_lastStatusResponse == Fw::CmdResponse::OK;
+    // 기존 테스트 코드에서 포트 연결 로직 가져오기
+    void connectPorts() {
+        // TesterBase에서 상속받은 포트 연결 로직 활용
+        // ...
     }
-    
-private:
-    Svc::CommandDispatcherImpl m_impl;
-    
-    // 테스트 상태 변수들 (ASSERT_* 대신 상태 추적용)
-    FwOpcodeType m_lastOpCode = 0;
-    U32 m_lastCmdSeq = 0;
-    
-    FwOpcodeType m_lastStatusOpCode = 0;
-    U32 m_lastStatusCmdSeq = 0;
-    Fw::CmdResponse m_lastStatusResponse = Fw::CmdResponse::EXECUTION_ERROR;
 };
 
 // libFuzzer 엔트리 포인트
@@ -96,7 +55,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         if (Size >= sizeof(FwOpcodeType) + sizeof(U32)) {
             memcpy(&context, &Data[sizeof(FwOpcodeType)], sizeof(U32));
         }
-        tester.sendCommand(buff, context);
+        tester.sendFuzzedCommand(buff, context);
         
         // 선택적: 결과 확인 및 추가 로직
         // if (tester.wasCommandHandled() && !tester.wasCommandSuccessful()) {
