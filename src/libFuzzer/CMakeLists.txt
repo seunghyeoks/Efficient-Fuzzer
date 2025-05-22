@@ -5,6 +5,14 @@ project(FPrimeCmdDispatcherFuzzer)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fsanitize=fuzzer,address")
 
+# fprime UT harness 전용 매크로 정의 (protected/private 접근 허용)
+add_definitions(
+    -DBUILD_UT
+    -DPROTECTED=public
+    -DPRIVATE=public
+    -DSTATIC=
+)
+
 # fprime include 설정
 set(FPRIME_SRC_ROOT "${CMAKE_SOURCE_DIR}/../fprime")
 set(FPRIME_UT_ROOT "${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut")
@@ -56,6 +64,14 @@ target_include_directories(CmdDispatcherFuzzTester PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
     "${FPRIME_UT_ROOT}/F-Prime/Svc/CmdDispatcher"
     ${FPRIME_INC_LIST}
+)
+
+# fprime UT harness 매크로 오버라이드: PROTECTED, PRIVATE 공개
+target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
+    BUILD_UT
+    PROTECTED=public
+    PRIVATE=public
+    STATIC=
 )
 
 # 모든 .a 파일 자동 링크 (자동 링크 코드 제거)
