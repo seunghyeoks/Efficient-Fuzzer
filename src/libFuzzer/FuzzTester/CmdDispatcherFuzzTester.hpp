@@ -34,6 +34,7 @@ class CmdDispatcherFuzzTester : public CommandDispatcherTesterBase {
     
     // 초기화 메소드
     void init(U32 cmdTimeout = 10, U32 cmdDispatcherNum = 0);
+    void init(U32 cmdTimeout) override;
     
     // 컴포넌트 포트 연결
     void connectPorts();
@@ -66,12 +67,12 @@ class CmdDispatcherFuzzTester : public CommandDispatcherTesterBase {
     void tlmInput_CommandsDispatched(
         const Fw::Time& timeTag,
         const U32 val
-    ) override;
+    );
     
     void tlmInput_CommandErrors(
         const Fw::Time& timeTag,
         const U32 val
-    ) override;
+    );
     
     // 이벤트 핸들러 오버라이드
     void logIn_WARNING_HI_MalformedCommand(

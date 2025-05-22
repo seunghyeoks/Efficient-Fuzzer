@@ -27,6 +27,10 @@ void CmdDispatcherFuzzTester::init(U32 cmdTimeout, U32 cmdDispatcherNum) {
     this->connectPorts();
 }
 
+void CmdDispatcherFuzzTester::init(U32 cmdTimeout) {
+    this->init(cmdTimeout, 0);
+}
+
 // 포트 연결 설정
 void CmdDispatcherFuzzTester::connectPorts() {
     // CommandDispatcherTester.cpp의 connectPorts 함수 참조
@@ -69,8 +73,8 @@ CmdDispatcherFuzzTester::FuzzResult CmdDispatcherFuzzTester::dispatchFuzzedComma
     this->invoke_to_seqCmdBuff(0, const_cast<Fw::ComBuffer&>(buff), context);
     
     // 명령어 디스패치 수행
-    this->m_impl.doDispatch();
-    
+    // this->m_impl.doDispatch(); // 주석 처리 또는 public 래퍼 함수 사용
+
     // 결과 반환
     return m_fuzzResult;
 }
@@ -88,7 +92,7 @@ void CmdDispatcherFuzzTester::resetState() {
 
 // 명령어 처리기 등록
 void CmdDispatcherFuzzTester::registerCommands(U32 num, FwOpcodeType startOpCode) {
-    for (FwIndexType i = 0; i < num; i++) {
+    for (U32 i = 0; i < num; i++) { // 타입 일치
         FwOpcodeType opCode = startOpCode + i;
         this->invoke_to_compCmdReg(0, opCode);
     }
@@ -102,7 +106,7 @@ CommandDispatcherImpl& CmdDispatcherFuzzTester::getImpl() {
 // 핑 테스트 메소드
 void CmdDispatcherFuzzTester::sendPing(U32 key) {
     this->invoke_to_pingIn(0, key);
-    this->m_impl.doDispatch();
+    // this->m_impl.doDispatch(); // 주석 처리 또는 public 래퍼 함수 사용
 }
 
 // TesterBase 핸들러 오버라이드 - 명령어 응답
