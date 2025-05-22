@@ -37,11 +37,12 @@ file(GLOB_RECURSE FPRIME_FOLDERS
     RELATIVE "${FPRIME_SRC_ROOT}"
     "${FPRIME_SRC_ROOT}/*"
 )
-# include 경로 리스트 초기화 (libFuzzer 프로젝트 루트, fprime 루트, config 포함)
+# include 경로 리스트 초기화 (libFuzzer 프로젝트 루트, fprime 루트, config, platform types 포함)
 set(FPRIME_INCLUDE_PATHS
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${FPRIME_SRC_ROOT}"
     "${FPRIME_SRC_ROOT}/config"  # FpConfig.hpp
+    "${FPRIME_SRC_ROOT}/cmake/platform/types"  # PlatformTypes.h
 )
 # 디렉토리만 append
 foreach(f ${FPRIME_FOLDERS})
