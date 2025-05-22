@@ -40,6 +40,8 @@ target_link_libraries(cmd_fuzzer
     Fw_Port
     Fw_Types
     Fw_Cfg
+    Fw_Cmd
+    Svc_Ping
 )
 
 # 설치 대상 설정
