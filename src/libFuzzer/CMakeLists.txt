@@ -14,6 +14,7 @@ set(FPRIME_INC_LIST
     "${FPRIME_SRC_ROOT}/cmake/platform/types"
     "${FPRIME_UT_ROOT}"
     "${FPRIME_UT_ROOT}/F-Prime"
+    "${FPRIME_UT_ROOT}/config"  # UT config 헤더 (FppConstantsAc.hpp 등)
 )
 
 # 글로벌 include 설정: fprime 주요 헤더 경로
