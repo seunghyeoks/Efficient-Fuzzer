@@ -43,6 +43,9 @@ endforeach()
 file(GLOB FPRIME_CMD_DISPATCHER_HARNESS_SRCS
     "${FPRIME_UT_ROOT}/F-Prime/Svc/CmdDispatcher/*.cpp"
 )
+list(REMOVE_ITEM FPRIME_CMD_DISPATCHER_HARNESS_SRCS
+    "${FPRIME_UT_ROOT}/F-Prime/Svc/CmdDispatcher/CommandDispatcherGTestBase.cpp"
+)
 message(STATUS "Including fprime harness sources: ${FPRIME_CMD_DISPATCHER_HARNESS_SRCS}")
 add_library(CmdDispatcherFuzzTester
     FuzzTester/CmdDispatcherFuzzTester.cpp
