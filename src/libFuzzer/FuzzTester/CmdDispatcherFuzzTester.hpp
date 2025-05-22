@@ -34,7 +34,7 @@ class CmdDispatcherFuzzTester : public CommandDispatcherTesterBase {
     
     // 초기화 메소드
     void init(U32 cmdTimeout = 10, U32 cmdDispatcherNum = 0);
-    void init(U32 cmdTimeout) override;
+    void init(U32 cmdTimeout);
     
     // 컴포넌트 포트 연결
     void connectPorts();
