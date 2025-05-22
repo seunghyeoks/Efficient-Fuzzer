@@ -61,7 +61,24 @@ foreach(libfile ${FPRIME_ALL_LIBS})
     string(REPLACE "lib" "" libname ${libname})
     list(APPEND FPRIME_LIB_NAMES ${libname})
 endforeach()
-target_link_libraries(CmdDispatcherFuzzTester PUBLIC ${FPRIME_LIB_NAMES})
+target_link_libraries(CmdDispatcherFuzzTester PUBLIC
+    Svc_CmdDispatcher_UT
+    Svc_CmdDispatcher
+    Fw_CompQueued
+    Fw_Comp
+    Fw_Tlm
+    Fw_Com
+    Fw_Time
+    Fw_Port
+    Fw_Types
+    Fw_Cfg
+    Fw_Cmd
+    Fw_Log
+    Svc_Ping
+    Os
+    Os_Mutex_Posix
+    gcov
+)
 
 # 실행 파일 생성
 add_executable(cmd_fuzzer
