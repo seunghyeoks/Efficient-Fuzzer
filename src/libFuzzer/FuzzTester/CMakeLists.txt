@@ -10,6 +10,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}                    # FuzzTester 소스 경로
     ${CMAKE_SOURCE_DIR}                            # libFuzzer 상위 경로
     ${CMAKE_SOURCE_DIR}/../fprime/build-fprime-automatic-native-ut  # fprime UT 자동 생성 헤더
+    ${CMAKE_SOURCE_DIR}/../fprime/config                         # fprime 설정 헤더 (FpConfig.hpp 등)
 )
 
 # 소스 파일 목록
