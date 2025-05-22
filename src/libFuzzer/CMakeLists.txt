@@ -62,7 +62,6 @@ foreach(libfile ${FPRIME_ALL_LIBS})
     list(APPEND FPRIME_LIB_NAMES ${libname})
 endforeach()
 target_link_libraries(CmdDispatcherFuzzTester PUBLIC
-    Svc_CmdDispatcher_UT
     Svc_CmdDispatcher
     Fw_CompQueued
     Fw_Comp
