@@ -1,4 +1,7 @@
 #!/bin/bash
+# 컴파일러를 clang 계열로 설정 (g++ 대신 clang 사용)
+export CC=clang
+export CXX=clang++
 set -e
 
 echo "=== F-Prime CmdDispatcher LibFuzzer 시작 ==="
