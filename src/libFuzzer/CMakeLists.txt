@@ -39,16 +39,19 @@ foreach(libdir ${FPRIME_LIB_DIRS})
     endif()
 endforeach()
 
-# FuzzTester 라이브러리 생성
+# FuzzTester 라이브러리 생성 (퍼저 하네스 + fprime auto-generated UT harness)
+file(GLOB FPRIME_CMD_DISPATCHER_HARNESS_SRCS
+    "${FPRIME_UT_ROOT}/F-Prime/Svc/CmdDispatcher/*.cpp"
+)
+message(STATUS "Including fprime harness sources: ${FPRIME_CMD_DISPATCHER_HARNESS_SRCS}")
 add_library(CmdDispatcherFuzzTester
     FuzzTester/CmdDispatcherFuzzTester.cpp
-    auto_ut_CmdDispatcher/CommandDispatcherTesterBase.cpp
-    auto_ut_CmdDispatcher/CommandDispatcherGTestBase.cpp
+    ${FPRIME_CMD_DISPATCHER_HARNESS_SRCS}
 )
 # FuzzTester include 및 링크
 target_include_directories(CmdDispatcherFuzzTester PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
-    "${CMAKE_CURRENT_SOURCE_DIR}/auto_ut_CmdDispatcher"
+    "${FPRIME_UT_ROOT}/F-Prime/Svc/CmdDispatcher"
     ${FPRIME_INC_LIST}
 )
 
