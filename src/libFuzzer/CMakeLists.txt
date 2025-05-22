@@ -74,15 +74,18 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
     STATIC=
 )
 
+# snprintf_format 구현 추가
+add_library(snprintf-format ${FPRIME_SRC_ROOT}/Fw/Types/snprintf_format.cpp)
+target_include_directories(snprintf-format PUBLIC ${FPRIME_INC_LIST})
+
 # 모든 .a 파일 자동 링크 (자동 링크 코드 제거)
 # 아래에 명시적으로 라이브러리 추가
-
 file(GLOB FPRIME_STATIC_LIBS
     "${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/*.a"
     "${FPRIME_SRC_ROOT}/build-fprime-automatic-native/lib/Linux/*.a"
 )
 message(STATUS "Linking all fprime static libs: ${FPRIME_STATIC_LIBS}")
-target_link_libraries(CmdDispatcherFuzzTester PUBLIC ${FPRIME_STATIC_LIBS} gcov)
+target_link_libraries(CmdDispatcherFuzzTester PUBLIC ${FPRIME_STATIC_LIBS} gcov snprintf-format)
 
 # 실행 파일 생성
 add_executable(cmd_fuzzer
@@ -94,24 +97,17 @@ target_include_directories(cmd_fuzzer PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
     ${FPRIME_INC_LIST}
 )
+
+# OS 인터페이스 문제 해결을 위한 링킹 순서 중요: libOs.a를 먼저 링크
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
     -Wl,--start-group
+    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs.a
     ${FPRIME_STATIC_LIBS}
-    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Queue_Common.a
-    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Mutex_Common.a
-    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Mutex_Posix.a
-    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Task_Common.a
-    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Task_Posix.a
     -Wl,--end-group
     gcov
     snprintf-format
 )
-
-
-add_library(snprintf-format ${FPRIME_SRC_ROOT}/Fw/Types/snprintf_format.cpp)
-target_link_libraries(CmdDispatcherFuzzTester PUBLIC snprintf-format)
-target_link_libraries(cmd_fuzzer PRIVATE snprintf-format) 
 
 # 설치 설정
 install(TARGETS cmd_fuzzer DESTINATION bin)
