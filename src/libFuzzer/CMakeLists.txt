@@ -96,6 +96,8 @@ target_include_directories(cmd_fuzzer PUBLIC
 )
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
+    ${FPRIME_STATIC_LIBS}
+    gcov
 )
 
 # 설치 설정
