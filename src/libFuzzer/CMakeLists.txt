@@ -96,7 +96,10 @@ target_include_directories(cmd_fuzzer PUBLIC
 )
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
+    # fprime static libraries grouped for cyclic dependencies
+    "-Wl,--start-group"
     ${FPRIME_STATIC_LIBS}
+    "-Wl,--end-group"
     gcov
 )
 
