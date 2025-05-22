@@ -99,7 +99,7 @@ target_link_libraries(cmd_fuzzer PRIVATE
     -Wl,--start-group
     ${FPRIME_STATIC_LIBS}
     ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Mutex_Posix.a
-    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Queue_Common.a
+
     ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs_Task_Posix.a
     -Wl,--end-group
     gcov
