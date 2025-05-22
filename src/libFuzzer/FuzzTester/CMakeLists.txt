@@ -7,9 +7,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 # 헤더 파일 디렉토리 추가
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/fprime
-    ${CMAKE_SOURCE_DIR}/build-fprime-automatic-native-ut
+    ${CMAKE_CURRENT_SOURCE_DIR}                    # FuzzTester 소스 경로
+    ${CMAKE_SOURCE_DIR}                            # libFuzzer 상위 경로
+    ${CMAKE_SOURCE_DIR}/../fprime/build-fprime-automatic-native-ut  # fprime UT 자동 생성 헤더
 )
 
 # 소스 파일 목록
