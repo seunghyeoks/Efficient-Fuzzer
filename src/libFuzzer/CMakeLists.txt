@@ -16,6 +16,11 @@ set(FPRIME_INC_LIST
     "${FPRIME_UT_ROOT}/F-Prime"
 )
 
+# 글로벌 include 설정: fprime 주요 헤더 경로
+include_directories(
+    ${FPRIME_INC_LIST}
+)
+
 # FuzzTester 라이브러리 생성
 add_library(CmdDispatcherFuzzTester
     FuzzTester/CmdDispatcherFuzzTester.cpp
