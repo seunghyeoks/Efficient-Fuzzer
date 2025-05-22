@@ -6,9 +6,6 @@
 #include <cstring>
 #include <algorithm>
 
-// 퍼징 상태 관리
-static Svc::CmdDispatcherFuzzTester* tester = nullptr;
-
 // 특수한 입력 패턴을 생성하는 함수들
 Fw::ComBuffer createValidCommandBuffer(FwOpcodeType opcode, U32 cmdSeq) {
     Fw::ComBuffer buff;

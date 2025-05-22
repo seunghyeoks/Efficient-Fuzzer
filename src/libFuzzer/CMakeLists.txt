@@ -22,6 +22,9 @@ include_directories(
     ${FPRIME_INC_LIST}
 )
 
+# fprime 라이브러리 경로 명시적으로 추가
+link_directories(/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/lib/Linux)
+
 # fprime 라이브러리 경로 자동 탐색
 file(GLOB_RECURSE FPRIME_LIB_DIRS
     "${FPRIME_SRC_ROOT}/build*/lib"
