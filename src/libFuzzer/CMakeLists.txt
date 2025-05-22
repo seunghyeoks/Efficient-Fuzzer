@@ -22,6 +22,20 @@ include_directories(
     ${FPRIME_INC_LIST}
 )
 
+# fprime 라이브러리 경로 자동 탐색
+file(GLOB_RECURSE FPRIME_LIB_DIRS
+    "${FPRIME_SRC_ROOT}/build*/lib"
+    "${FPRIME_SRC_ROOT}/build*/F-Prime/lib"
+    "${FPRIME_SRC_ROOT}/build*/Svc/CmdDispatcher"
+    "${FPRIME_SRC_ROOT}/build*/Fw/*"
+)
+list(REMOVE_DUPLICATES FPRIME_LIB_DIRS)
+foreach(libdir ${FPRIME_LIB_DIRS})
+    if(IS_DIRECTORY ${libdir})
+        link_directories(${libdir})
+    endif()
+endforeach()
+
 # FuzzTester 라이브러리 생성
 add_library(CmdDispatcherFuzzTester
     FuzzTester/CmdDispatcherFuzzTester.cpp
