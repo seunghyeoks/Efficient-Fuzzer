@@ -1,0 +1,5 @@
+CommandDispatcherGTestBase.cpp
+CommandDispatcherGTestBase.hpp
+CommandDispatcherTesterBase.cpp
+CommandDispatcherTesterBase.hpp
+CommandDispatcherTesterHelpers.cpp
