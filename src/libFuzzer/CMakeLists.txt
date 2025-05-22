@@ -42,10 +42,13 @@ endforeach()
 # FuzzTester 라이브러리 생성
 add_library(CmdDispatcherFuzzTester
     FuzzTester/CmdDispatcherFuzzTester.cpp
+    auto_ut_CmdDispatcher/CommandDispatcherTesterBase.cpp
+    auto_ut_CmdDispatcher/CommandDispatcherGTestBase.cpp
 )
 # FuzzTester include 및 링크
 target_include_directories(CmdDispatcherFuzzTester PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
+    "${CMAKE_CURRENT_SOURCE_DIR}/auto_ut_CmdDispatcher"
     ${FPRIME_INC_LIST}
 )
 
