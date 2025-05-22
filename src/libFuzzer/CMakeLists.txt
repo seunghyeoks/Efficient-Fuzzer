@@ -24,6 +24,7 @@ include_directories(
 
 # fprime 라이브러리 경로 명시적으로 추가
 link_directories(/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/lib/Linux)
+link_directories(/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/lib/Linux)
 
 # fprime 라이브러리 경로 자동 탐색
 file(GLOB_RECURSE FPRIME_LIB_DIRS
@@ -48,19 +49,19 @@ target_include_directories(CmdDispatcherFuzzTester PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
     ${FPRIME_INC_LIST}
 )
-target_link_libraries(CmdDispatcherFuzzTester PUBLIC
-    Svc_CmdDispatcher
-    Fw_Log
-    Fw_Comp
-    Fw_Tlm
-    Fw_Com
-    Fw_Time
-    Fw_Port
-    Fw_Types
-    Fw_Cfg
-    Fw_Cmd
-    Svc_Ping
+
+# 모든 .a 파일 자동 링크
+file(GLOB FPRIME_ALL_LIBS
+    "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/lib/Linux/lib*.a"
+    "/workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native/lib/Linux/lib*.a"
 )
+set(FPRIME_LIB_NAMES "")
+foreach(libfile ${FPRIME_ALL_LIBS})
+    get_filename_component(libname ${libfile} NAME_WE)
+    string(REPLACE "lib" "" libname ${libname})
+    list(APPEND FPRIME_LIB_NAMES ${libname})
+endforeach()
+target_link_libraries(CmdDispatcherFuzzTester PUBLIC ${FPRIME_LIB_NAMES})
 
 # 실행 파일 생성
 add_executable(cmd_fuzzer
