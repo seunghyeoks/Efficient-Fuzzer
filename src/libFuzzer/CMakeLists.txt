@@ -131,20 +131,20 @@ target_link_libraries(CmdDispatcherFuzzTester PUBLIC
 )
 
 # Fprime OS Posix 구현 라이브러리 생성
-file(GLOB FPRIME_OS_POSIX_SRCS
-    "${FPRIME_SRC_ROOT}/Os/Posix/DefaultMutex.cpp"
-    "${FPRIME_SRC_ROOT}/Os/Posix/DefaultQueue.cpp"
-    "${FPRIME_SRC_ROOT}/Os/Posix/DefaultTask.cpp"
-    "${FPRIME_SRC_ROOT}/Os/Posix/DefaultRawTime.cpp"
-    "${FPRIME_SRC_ROOT}/Os/Posix/DefaultFile.cpp"
-    # 필요한 다른 Posix 구현 파일들을 여기에 추가할 수 있습니다.
+file(GLOB FPRIME_OS_STUB_SRCS
+    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultMutex.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultQueue.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultTask.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultRawTime.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultFile.cpp"
+    # 필요한 다른 Stub 구현 파일들을 여기에 추가할 수 있습니다.
 )
-add_library(OsPosixImplementation ${FPRIME_OS_POSIX_SRCS})
-target_include_directories(OsPosixImplementation PUBLIC
-    "${FPRIME_SRC_ROOT}/Os/Posix"
+add_library(OsStubImplementation ${FPRIME_OS_STUB_SRCS})
+target_include_directories(OsStubImplementation PUBLIC
+    "${FPRIME_SRC_ROOT}/Os/Stub"
     ${FPRIME_INC_LIST}
 )
-target_compile_definitions(OsPosixImplementation PRIVATE
+target_compile_definitions(OsStubImplementation PRIVATE
     BUILD_UT
     PROTECTED=public
     PRIVATE=public
@@ -165,7 +165,7 @@ target_include_directories(cmd_fuzzer PUBLIC
 # OS 인터페이스 문제 해결을 위한 링킹 순서 중요: libOs.a를 먼저 링크
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
-    OsPosixImplementation
+    OsStubImplementation
     -Wl,--start-group
     ${LIB_OS_A_PATH}
     ${FPRIME_LINK_LIBS_PATHS}
