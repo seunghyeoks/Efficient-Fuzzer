@@ -130,14 +130,9 @@ target_link_libraries(CmdDispatcherFuzzTester PUBLIC
     snprintf-format
 )
 
-# Fprime OS Posix 구현 라이브러리 생성
+# Fprime OS Stub 구현 라이브러리 생성
 file(GLOB FPRIME_OS_STUB_SRCS
-    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultMutex.cpp"
-    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultQueue.cpp"
-    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultTask.cpp"
-    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultRawTime.cpp"
-    "${FPRIME_SRC_ROOT}/Os/Stub/DefaultFile.cpp"
-    # 필요한 다른 Stub 구현 파일들을 여기에 추가할 수 있습니다.
+    "${FPRIME_SRC_ROOT}/Os/Stub/*.cpp"
 )
 add_library(OsStubImplementation ${FPRIME_OS_STUB_SRCS})
 target_include_directories(OsStubImplementation PUBLIC
