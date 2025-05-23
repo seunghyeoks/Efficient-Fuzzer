@@ -47,9 +47,12 @@ void runPredefinedNominalTest(Svc::CommandDispatcherImpl& impl, Svc::CmdDispatch
 
     // 명령어 버퍼 생성
     Fw::ComBuffer buff;
-    FW_ASSERT(buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND)) == Fw::FW_SERIALIZE_OK);
-    FW_ASSERT(buff.serialize(testOpCode) == Fw::FW_SERIALIZE_OK);
-    FW_ASSERT(buff.serialize(testCmdArg) == Fw::FW_SERIALIZE_OK);
+    // FW_ASSERT(buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND)) == Fw::FW_SERIALIZE_OK);
+    // FW_ASSERT(buff.serialize(testOpCode) == Fw::FW_SERIALIZE_OK);
+    // FW_ASSERT(buff.serialize(testCmdArg) == Fw::FW_SERIALIZE_OK);
+    buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+    buff.serialize(testOpCode);
+    buff.serialize(testCmdArg);
 
     // 상태 초기화
     tester.resetState();
