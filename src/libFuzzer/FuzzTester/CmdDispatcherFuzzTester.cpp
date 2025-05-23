@@ -59,8 +59,12 @@ namespace Svc {
         // 명령어 버퍼 전송
         this->invoke_to_seqCmdBuff(0, const_cast<Fw::ComBuffer&>(buff), context);
         
-        // 명령어 디스패치 수행
-        // this->m_impl.doDispatch(); // 주석 처리 또는 public 래퍼 함수 사용
+        // 메시지 큐를 처리하여 명령 디스패치 수행
+        this->m_impl.doDispatch();
+        // 추가 디스패치가 남아 있을 수 있으므로 반복 처리
+        while (this->m_impl.doDispatch() == Fw::QueuedComponentBase::MSG_DISPATCH_OK) {
+            ;
+        }
 
         // 결과 반환
         return m_fuzzResult;
