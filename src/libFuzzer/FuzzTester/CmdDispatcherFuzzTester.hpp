@@ -50,6 +50,21 @@ namespace Svc {
             
             // 핑 테스트 메소드
             void sendPing(U32 key);
+
+            // Public wrapper for invoke_to_compCmdReg
+            void public_invoke_to_compCmdReg(FwIndexType portNum, FwOpcodeType opCode) {
+                this->invoke_to_compCmdReg(portNum, opCode);
+            }
+
+            // Public wrapper for invoke_to_seqCmdBuff
+            void public_invoke_to_seqCmdBuff(FwIndexType portNum, Fw::ComBuffer &data, U32 context) {
+                this->invoke_to_seqCmdBuff(portNum, data, context);
+            }
+
+            // Getter for m_fuzzResult
+            const FuzzResult& getFuzzResult() const {
+                return m_fuzzResult;
+            }
         
         protected:
             // TesterBase 핸들러 오버라이드
