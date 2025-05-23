@@ -45,10 +45,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
 
     // 입력 데이터 전체를 명령 버퍼로 사용
     Fw::ComBuffer buff;
-    if (Size > 0) {
-        buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-        buff.serialize(Data, Size);
-    }
+    buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+    const size_t cap = buff.getBuffCapacity() - sizeof(FwPacketDescriptorType);
+    const size_t len = (Size > cap ? cap : Size);
+    buff.serialize(Data, len);
 
     // 상태 초기화
     tester.resetState();
@@ -58,7 +58,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
 
     // 에러 발생 시 로그 출력 (퍼저가 크래시 입력을 쉽게 찾도록)
     if (result.hasError) {
-        fprintf(stderr, "[FuzzError] Input size: %zu, LastOpcode: 0x%X, LastResponse: %d\n", Size, result.lastOpcode, result.lastResponse.e);
+        fprintf(stderr, "[FuzzError] Input size: %zu (clamped to %zu), LastOpcode: 0x%X, LastResponse: %d\n",
+                Size, len, result.lastOpcode, result.lastResponse.e);
     }
 
     return 0;
