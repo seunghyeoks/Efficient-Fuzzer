@@ -166,8 +166,31 @@ target_link_libraries(cmd_fuzzer PRIVATE
     ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
     gcov
-    snprintf-format
+)
+
+# TestNominal 실행 파일 생성
+add_executable(TestNominal
+    FuzzTester/TestNominal.cpp
+)
+# TestNominal include 및 링크
+target_include_directories(TestNominal PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
+    ${FPRIME_INC_LIST}
+)
+# TestNominal은 fuzzer sanitize 옵션 없이 빌드
+set_target_properties(TestNominal PROPERTIES CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -Wall -Wextra -fsanitize=address")
+
+target_link_libraries(TestNominal PRIVATE
+    CmdDispatcherFuzzTester
+    -Wl,--start-group
+    OsStubImplementation
+    ${LIB_OS_A_PATH}
+    ${FPRIME_LINK_LIBS_PATHS}
+    -Wl,--end-group
+    gcov
 )
 
 # 설치 설정
 install(TARGETS cmd_fuzzer DESTINATION bin)
+install(TARGETS TestNominal DESTINATION bin)
