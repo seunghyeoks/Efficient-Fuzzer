@@ -3,7 +3,7 @@ project(FPrimeCmdDispatcherFuzzer)
 
 # 컴파일 옵션 설정
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fsanitize=fuzzer,address")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fsanitize=fuzzer,address -Wno-unused-parameter")
 
 # fprime UT harness 전용 매크로 정의 (protected/private 접근 허용)
 add_definitions(
@@ -192,5 +192,6 @@ target_link_libraries(TestNominal PRIVATE
 )
 
 # 설치 설정
-install(TARGETS cmd_fuzzer DESTINATION bin)
 install(TARGETS TestNominal DESTINATION bin)
+install(TARGETS cmd_fuzzer DESTINATION bin)
+
