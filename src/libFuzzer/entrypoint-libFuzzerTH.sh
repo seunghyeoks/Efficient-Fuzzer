@@ -22,11 +22,11 @@ OUTPUT_DIR="/workspace/Efficient-Fuzzer/build/libfuzzer"
 mkdir -p "$OUTPUT_DIR"
 cp cmd_fuzzer "$OUTPUT_DIR/cmd_dispatcher_fuzzer"
 
-# 코퍼스 디렉토리 생성
-mkdir -p corpus findings
-
 # 실행 디렉토리 이동
 cd "$OUTPUT_DIR"
+
+# 코퍼스 및 findings 디렉토리 생성 (실행 디렉토리 기준)
+mkdir -p corpus findings
 
 echo "=== libFuzzer 실행 시작 ==="
 # ASAN 설정
