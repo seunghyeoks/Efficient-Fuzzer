@@ -80,12 +80,44 @@ target_include_directories(snprintf-format PUBLIC ${FPRIME_INC_LIST})
 
 # 모든 .a 파일 자동 링크 (자동 링크 코드 제거)
 # 아래에 명시적으로 라이브러리 추가
-file(GLOB FPRIME_STATIC_LIBS
-    "${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/*.a"
-    "${FPRIME_SRC_ROOT}/build-fprime-automatic-native/lib/Linux/*.a"
+# file(GLOB FPRIME_STATIC_LIBS
+# "${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/*.a"
+# "${FPRIME_SRC_ROOT}/build-fprime-automatic-native/lib/Linux/*.a"
+# )
+# message(STATUS "Linking all fprime static libs: ${FPRIME_STATIC_LIBS}")
+
+# ut_list.txt에서 FPrime 라이브러리 목록 읽기
+set(UT_LIST_FILE "${CMAKE_SOURCE_DIR}/ut_list.txt")
+if(NOT EXISTS ${UT_LIST_FILE})
+    message(FATAL_ERROR "ut_list.txt not found at ${UT_LIST_FILE}")
+endif()
+file(STRINGS ${UT_LIST_FILE} UT_RAW_LIBRARIES)
+
+set(OS_LIB_PATH "")
+set(FPRIME_LINK_LIBS "")
+
+foreach(lib_path ${UT_RAW_LIBRARIES})
+    if(lib_path MATCHES ".*/libOs\\\\.a$") # Escaped dot for regex
+        set(OS_LIB_PATH ${lib_path})
+    elseif(NOT (lib_path MATCHES ".*libgtest.*" OR lib_path MATCHES ".*libsnprintf-format\\\\.a$")) # Escaped dot
+        list(APPEND FPRIME_LINK_LIBS ${lib_path})
+    endif()
+endforeach()
+
+if(NOT OS_LIB_PATH)
+    message(WARNING "libOs.a not found in ut_list.txt. Linker errors for Os::*Interface::getDelegate might persist if OS_LIB_PATH is not correctly identified from ut_list.txt or manually set.")
+else()
+    message(STATUS "Found OS_LIB_PATH: ${OS_LIB_PATH}")
+endif()
+
+list(REMOVE_DUPLICATES FPRIME_LINK_LIBS)
+message(STATUS "Linking FPrime libraries (from ut_list.txt, excluding gtest, libOs.a, libsnprintf-format.a): ${FPRIME_LINK_LIBS}")
+
+# CmdDispatcherFuzzTester 라이브러리 링크 수정 (Fprime 의존성은 cmd_fuzzer에서 처리)
+target_link_libraries(CmdDispatcherFuzzTester PUBLIC
+    gcov
+    snprintf-format
 )
-message(STATUS "Linking all fprime static libs: ${FPRIME_STATIC_LIBS}")
-target_link_libraries(CmdDispatcherFuzzTester PUBLIC ${FPRIME_STATIC_LIBS} gcov snprintf-format)
 
 # 실행 파일 생성
 add_executable(cmd_fuzzer
@@ -102,8 +134,8 @@ target_include_directories(cmd_fuzzer PUBLIC
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
     -Wl,--start-group
-    ${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/libOs.a
-    ${FPRIME_STATIC_LIBS}
+    ${OS_LIB_PATH}          # ut_list.txt에서 찾은 libOs.a 경로 사용
+    ${FPRIME_LINK_LIBS}    # 나머지 FPrime 라이브러리 (gtest, libsnprintf-format.a 제외)
     -Wl,--end-group
     gcov
     snprintf-format
