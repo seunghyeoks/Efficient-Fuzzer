@@ -79,6 +79,7 @@ namespace Svc {
         
         // 퍼징 결과 초기화
         this->m_fuzzResult = FuzzResult();
+        this->m_fuzzResult.opCodeReregistered = false;
     }
 
     // 명령어 처리기 등록
@@ -169,6 +170,17 @@ namespace Svc {
     ) {
         CommandDispatcherTesterBase::logIn_COMMAND_OpCodeError(Opcode, error);
         m_fuzzResult.hasError = true;
+    }
+
+    // 이벤트 핸들러 - OpCode 재등록
+    void CmdDispatcherFuzzTester::logIn_DIAGNOSTIC_OpCodeReregistered(
+        U32 Opcode,
+        I32 port
+    ) {
+        CommandDispatcherTesterBase::logIn_DIAGNOSTIC_OpCodeReregistered(Opcode, port);
+        m_fuzzResult.opCodeReregistered = true;
+        // This event is diagnostic, so it might not always be an error for the fuzzer.
+        // Depending on the fuzzing strategy, you might want to set m_fuzzResult.hasError = true here.
     }
 
 } // namespace Svc

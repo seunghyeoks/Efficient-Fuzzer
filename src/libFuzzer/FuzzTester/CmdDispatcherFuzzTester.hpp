@@ -21,9 +21,10 @@ namespace Svc {
                 std::vector<Fw::CmdResponse> allResponses;
                 U32 dispatchCount;
                 U32 errorCount;
+                bool opCodeReregistered;
                 
                 FuzzResult() : hasError(false), lastResponse(Fw::CmdResponse::OK), 
-                            lastOpcode(0), dispatchCount(0), errorCount(0) {}
+                            lastOpcode(0), dispatchCount(0), errorCount(0), opCodeReregistered(false) {}
             };
 
             // 생성자
@@ -86,6 +87,11 @@ namespace Svc {
             void logIn_COMMAND_OpCodeError(
                 U32 Opcode,
                 Fw::CmdResponse error
+            ) override;
+
+            void logIn_DIAGNOSTIC_OpCodeReregistered(
+                U32 Opcode,
+                I32 port
             ) override;
         
         private:
