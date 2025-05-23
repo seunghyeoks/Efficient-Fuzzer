@@ -16,6 +16,15 @@ cmake ..
 
 echo "=== Make 빌드 시작 ==="
 make cmd_fuzzer
+make TestNominal
+
+# TestNominal 실행
+echo "=== TestNominal 실행 시작 ==="
+if ! $BUILD_DIR/bin/TestNominal; then
+    echo "TestNominal FAILED. Exiting."
+    exit 1
+fi
+echo "=== TestNominal PASSED ==="
 
 # 빌드 출력 디렉토리로 바이너리 복사
 OUTPUT_DIR="/workspace/Efficient-Fuzzer/build/libfuzzer"
