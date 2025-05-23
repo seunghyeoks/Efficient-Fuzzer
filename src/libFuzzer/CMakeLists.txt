@@ -165,8 +165,8 @@ target_include_directories(cmd_fuzzer PUBLIC
 # OS 인터페이스 문제 해결을 위한 링킹 순서 중요: libOs.a를 먼저 링크
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
-    OsStubImplementation
     -Wl,--start-group
+    OsStubImplementation
     ${LIB_OS_A_PATH}
     ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
