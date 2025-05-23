@@ -33,12 +33,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // 매 입력마다 새로 생성 (상태 오염 방지)
     Svc::CommandDispatcherImpl impl("CmdDispImpl");
     impl.init(10, 0);
-    // 기본 제공 명령어 등록 (NoOp, NoOpString, TestCmd1, ClearTracking 등)
-    impl.regCommands();
 
     Svc::CmdDispatcherFuzzTester tester(impl);
     tester.init();
     tester.connectPorts();
+
+    // 기본 제공 명령어 등록 (NoOp, NoOpString, TestCmd1, ClearTracking 등)
+    impl.regCommands();
+
     tester.registerCommands(10, 0x100);
 
     // 입력 데이터 전체를 명령 버퍼로 사용
