@@ -71,12 +71,12 @@ void runPredefinedNominalTest(Svc::CommandDispatcherImpl& impl, Svc::CmdDispatch
     // 결과 확인
     if (result.hasError) {
         fprintf(stderr, "[PredefinedTestError] LastOpcode: 0x%X, LastResponse: %d, DispatchCount: %u, ErrorCount: %u\n",
-                result.lastOpcode, result.lastResponse, result.dispatchCount, result.errorCount);
+                result.lastOpcode, result.lastResponse.e, result.dispatchCount, result.errorCount);
         // 필요시 여기서 abort() 또는 exit(1) 호출하여 Fuzzer 중단 가능
         // FW_ASSERT(false); // Fuzzer가 크래시로 인식하도록
     } else {
         fprintf(stdout, "[PredefinedTestSuccess] LastOpcode: 0x%X, LastResponse: %d, DispatchCount: %u, ErrorCount: %u\n",
-                result.lastOpcode, result.lastResponse, result.dispatchCount, result.errorCount);
+                result.lastOpcode, result.lastResponse.e, result.dispatchCount, result.errorCount);
     }
     
     bool nominalTestPassed = true;
@@ -86,7 +86,7 @@ void runPredefinedNominalTest(Svc::CommandDispatcherImpl& impl, Svc::CmdDispatch
         nominalTestPassed = false;
     }
     if (result.lastResponse != Fw::CmdResponse::OK && result.lastResponse.e != Fw::CmdResponse::SERIALIZED_SIZE) { // 초기값일 수 있음
-        fprintf(stderr, "Predefined Test Mismatch: lastResponse. Expected Fw::CmdResponse::OK (%d) or initial value, Got %d\n", Fw::CmdResponse::OK, result.lastResponse);
+        fprintf(stderr, "Predefined Test Mismatch: lastResponse. Expected Fw::CmdResponse::OK (%d) or initial value, Got %d\n", Fw::CmdResponse::OK, result.lastResponse.e);
         nominalTestPassed = false;
     }
 
@@ -139,9 +139,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // 에러 발생 시 로그 출력 (퍼저가 크래시 입력을 쉽게 찾도록)
     if (result.hasError) {
         fprintf(stderr, "[FuzzError] Input size: %zu (clamped to %zu), LastOpcode: 0x%X, LastResponse: %d\n",
-                Size, len, result.lastOpcode, result.lastResponse);
+                Size, len, result.lastOpcode, result.lastResponse.e);
         // Fuzzer가 에러를 감지하도록 하기 위해, 필요시 여기서 abort() 또는 FW_ASSERT(false) 호출
-        // 예: if (result.lastResponse != Fw::CmdResponse::OK) FW_ASSERT(0, result.lastOpcode, result.lastResponse);
+        // 예: if (result.lastResponse != Fw::CmdResponse::OK) FW_ASSERT(0, result.lastOpcode, result.lastResponse.e);
     }
 
     return 0;
