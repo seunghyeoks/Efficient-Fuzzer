@@ -28,7 +28,7 @@ Fw::ComBuffer createInvalidSizeCommandBuffer(const uint8_t* data, size_t size) {
 
 // Google Test의 Nominal Dispatch와 유사한 테스트를 수행하는 함수
 static bool predefinedTestDone = false;
-void runPredefinedNominalTest(Svc::CmdDispatcherImpl& impl, Svc::CmdDispatcherFuzzTester& tester) {
+void runPredefinedNominalTest(Svc::CommandDispatcherImpl& impl, Svc::CmdDispatcherFuzzTester& tester) {
     if (predefinedTestDone) {
         return;
     }
