@@ -78,40 +78,51 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 add_library(snprintf-format ${FPRIME_SRC_ROOT}/Fw/Types/snprintf_format.cpp)
 target_include_directories(snprintf-format PUBLIC ${FPRIME_INC_LIST})
 
-# 모든 .a 파일 자동 링크 (자동 링크 코드 제거)
-# 아래에 명시적으로 라이브러리 추가
-# file(GLOB FPRIME_STATIC_LIBS
-# "${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut/lib/Linux/*.a"
-# "${FPRIME_SRC_ROOT}/build-fprime-automatic-native/lib/Linux/*.a"
-# )
-# message(STATUS "Linking all fprime static libs: ${FPRIME_STATIC_LIBS}")
+# Fprime 라이브러리 경로 명시적 설정
+# FPRIME_UT_ROOT 는 이미 "${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut" 로 설정되어 있음
 
-# ut_list.txt에서 FPrime 라이브러리 목록 읽기
-set(UT_LIST_FILE "${CMAKE_SOURCE_DIR}/ut_list.txt")
-if(NOT EXISTS ${UT_LIST_FILE})
-    message(FATAL_ERROR "ut_list.txt not found at ${UT_LIST_FILE}")
-endif()
-file(STRINGS ${UT_LIST_FILE} UT_RAW_LIBRARIES)
+set(LIB_OS_A_PATH ${FPRIME_UT_ROOT}/lib/Linux/libOs.a)
 
-set(OS_LIB_PATH "")
-set(FPRIME_LINK_LIBS "")
-
-foreach(lib_path ${UT_RAW_LIBRARIES})
-    if(lib_path MATCHES ".*/libOs\\\\.a$") # Escaped dot for regex
-        set(OS_LIB_PATH ${lib_path})
-    elseif(NOT (lib_path MATCHES ".*libgtest.*" OR lib_path MATCHES ".*libsnprintf-format\\\\.a$")) # Escaped dot
-        list(APPEND FPRIME_LINK_LIBS ${lib_path})
-    endif()
-endforeach()
-
-if(NOT OS_LIB_PATH)
-    message(WARNING "libOs.a not found in ut_list.txt. Linker errors for Os::*Interface::getDelegate might persist if OS_LIB_PATH is not correctly identified from ut_list.txt or manually set.")
-else()
-    message(STATUS "Found OS_LIB_PATH: ${OS_LIB_PATH}")
-endif()
-
-list(REMOVE_DUPLICATES FPRIME_LINK_LIBS)
-message(STATUS "Linking FPrime libraries (from ut_list.txt, excluding gtest, libOs.a, libsnprintf-format.a): ${FPRIME_LINK_LIBS}")
+set(FPRIME_LINK_LIBS_PATHS
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Memory_Linux.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Console_Common.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_File_Posix.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Types.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libSvc_CmdDispatcher.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Generic_Types.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Console_Posix.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_CompQueued.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Mutex_Posix.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Cmd.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_RawTime_Common.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Com.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Tlm.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Port.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Prm.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Generic_PriorityQueue.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libSvc_Ping.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Buffer.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Posix_Shared.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Comp.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Cfg.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Obj.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_File_Common.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Memory_Common.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Queue_Common.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Log.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_RawTime_Posix.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libconfig.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Time.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Mutex_Common.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Task_Common.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Task_Posix.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Cpu_Linux.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libUtils_Hash.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libFw_Logger.a
+    ${FPRIME_UT_ROOT}/lib/Linux/libOs_Cpu_Common.a
+)
+message(STATUS "FPrime Lib OS Path: ${LIB_OS_A_PATH}")
+message(STATUS "FPrime Link Libraries: ${FPRIME_LINK_LIBS_PATHS}")
 
 # CmdDispatcherFuzzTester 라이브러리 링크 수정 (Fprime 의존성은 cmd_fuzzer에서 처리)
 target_link_libraries(CmdDispatcherFuzzTester PUBLIC
@@ -134,8 +145,8 @@ target_include_directories(cmd_fuzzer PUBLIC
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
     -Wl,--start-group
-    ${OS_LIB_PATH}          # ut_list.txt에서 찾은 libOs.a 경로 사용
-    ${FPRIME_LINK_LIBS}    # 나머지 FPrime 라이브러리 (gtest, libsnprintf-format.a 제외)
+    ${LIB_OS_A_PATH}
+    ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
     gcov
     snprintf-format
