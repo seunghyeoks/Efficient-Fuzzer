@@ -107,22 +107,31 @@ void runPredefinedNominalTest(Svc::CommandDispatcherImpl& impl, Svc::CmdDispatch
 
 // libFuzzer 엔트리 포인트
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
+    fprintf(stdout, "LLVMFuzzerTestOneInput_START\\n"); // 추가된 로그
+
     // 매 입력마다 새로 생성 (상태 오염 방지)
     Svc::CommandDispatcherImpl impl("CmdDispImpl");
+    fprintf(stdout, "LLVMFuzzerTestOneInput_IMPL_CREATED\\n"); // 추가된 로그
     impl.init(10, 0);
+    fprintf(stdout, "LLVMFuzzerTestOneInput_IMPL_INITED\\n"); // 추가된 로그
 
     Svc::CmdDispatcherFuzzTester tester(impl);
+    fprintf(stdout, "LLVMFuzzerTestOneInput_TESTER_CREATED\\n"); // 추가된 로그
     tester.init();
+    fprintf(stdout, "LLVMFuzzerTestOneInput_TESTER_INITED\\n"); // 추가된 로그
     tester.connectPorts();
+    fprintf(stdout, "LLVMFuzzerTestOneInput_PORTS_CONNECTED\\n"); // 추가된 로그
 
     // 기본 제공 명령어 등록 (NoOp, NoOpString, TestCmd1, ClearTracking 등)
     impl.regCommands();
+    fprintf(stdout, "LLVMFuzzerTestOneInput_CMDS_REGISTERED\\n"); // 추가된 로그
 
     // Fuzz 테스팅을 위한 추가 명령어 등록 (선택 사항)
     // tester.registerCommands(10, 0x100);
 
     // 퍼지 루프 시작 전, 고정된 테스트 실행 (최초 한 번만)
     runPredefinedNominalTest(impl, tester);
+    fprintf(stdout, "LLVMFuzzerTestOneInput_NOMINAL_TEST_DONE\\n"); // 추가된 로그
 
     if (Size < 1) return 0; // Fuzzer 입력이 너무 작으면 스킵
 
