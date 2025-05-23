@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include <cstdint>
+#include <cstdio> // fprintf를 위해 추가
 
 // 특수한 입력 패턴을 생성하는 함수들
 Fw::ComBuffer createValidCommandBuffer(FwOpcodeType opcode, U32 cmdSeq) {
@@ -105,6 +107,13 @@ void runPredefinedNominalTest(Svc::CommandDispatcherImpl& impl, Svc::CmdDispatch
     fprintf(stdout, "Finished predefined nominal test.\\n");
 }
 
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
+    fprintf(stdout, "Minimal LLVMFuzzerTestOneInput CALLED\\n");
+    return 0;
+}
+
+/*
+
 // libFuzzer 엔트리 포인트
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     fprintf(stdout, "LLVMFuzzerTestOneInput_START\\n"); // 추가된 로그
@@ -158,3 +167,4 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
 
     return 0;
 }
+*/
