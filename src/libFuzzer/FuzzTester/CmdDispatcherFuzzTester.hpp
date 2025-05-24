@@ -36,9 +36,7 @@ namespace Svc {
             // 컴포넌트 포트 연결
             void connectPorts();
             
-            // 퍼저 입력을 전달하는 메소드
-            FuzzResult dispatchFuzzedCommand(const Fw::ComBuffer& buff, U32 context = 0);
-            
+   
             // 상태 초기화
             void resetState();
             
@@ -68,6 +66,12 @@ namespace Svc {
 
             // Public wrapper for doDispatch loop
             void public_doDispatchLoop();
+
+            // 퍼저 입력으로부터 명령어 버퍼 생성 함수 (추가 필요)
+            Fw::ComBuffer createFuzzedCommandBuffer(
+                const uint8_t* data, 
+                size_t size
+            );
         
         protected:
             // TesterBase 핸들러 오버라이드
