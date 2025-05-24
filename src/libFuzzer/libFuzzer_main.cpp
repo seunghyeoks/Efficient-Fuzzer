@@ -58,14 +58,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         return 0; 
     }
 
-    // 첫 바이트를 사용해 전략 선택 (선택 사항)
+    /* 1. 첫 바이트를 사용해 전략 선택 (선택 사항)
     FuzzStrategy strategy = Size > 0 ? 
         static_cast<FuzzStrategy>(Data[0] % NUM_STRATEGIES) : 
         STRATEGY_DEFAULT;
+    Fw::ComBuffer buff = tester.createFuzzedCommandBufferWithStrategy(Data, Size, strategy);
+    */ 
     
-    // 퍼저 입력으로부터 명령어 버퍼 생성
+    // 2. 퍼저 입력으로부터 바로 명령어 버퍼 생성
     Fw::ComBuffer buff = tester.createFuzzedCommandBuffer(Data, Size);
-    // 또는: Fw::ComBuffer buff = tester.createFuzzedCommandBufferWithStrategy(Data, Size, strategy);
+    
     
     // 생성된 명령어 버퍼 전송
     tester.public_invoke_to_seqCmdBuff(0, buff, 0);

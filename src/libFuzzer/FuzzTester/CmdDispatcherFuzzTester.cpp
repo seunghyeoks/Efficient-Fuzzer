@@ -204,7 +204,11 @@ namespace Svc {
         buff.serialize(opcode);
         
         // 나머지 데이터는 명령어 인자로 사용
-        const size_t argSize = std::min(size - 2, buff.getBuffCapacity() - buff.getBuffLength());
+        // 타입 일치시키기 위해 static_cast 사용
+        const size_t remainingSize = size - 2;
+        const size_t buffSpace = static_cast<size_t>(buff.getBuffCapacity() - buff.getBuffLength());
+        const size_t argSize = (remainingSize < buffSpace) ? remainingSize : buffSpace;
+        
         if (argSize > 0) {
             buff.serialize(&data[2], argSize);
         }
@@ -212,6 +216,7 @@ namespace Svc {
         return buff;
     }
 
+    /*
     Fw::ComBuffer CmdDispatcherFuzzTester::createFuzzedCommandBufferWithStrategy(
         const uint8_t* data, 
         size_t size,
@@ -228,5 +233,6 @@ namespace Svc {
             // ...
         }
     }
+    */
 
 } // namespace Svc
