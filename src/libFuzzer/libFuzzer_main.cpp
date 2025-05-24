@@ -52,10 +52,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // Fuzz 테스팅을 위한 추가 명령어 등록 (선택 사항)
     // tester.registerCommands(10, 0x100);
 
-    // 퍼지 루프 시작 전, 고정된 테스트 실행 (최초 한 번만)
-    runPredefinedNominalTest(impl, tester);
-    fprintf(stderr, "LLVMFuzzerTestOneInput_NOMINAL_TEST_DONE\\n"); // 추가된 로그
-
     if (Size < 1) return 0; // Fuzzer 입력이 너무 작으면 스킵
 
     // 입력 데이터 전체를 명령 버퍼로 사용
