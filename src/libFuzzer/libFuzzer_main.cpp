@@ -30,34 +30,33 @@ Fw::ComBuffer createInvalidSizeCommandBuffer(const uint8_t* data, size_t size) {
 
 // libFuzzer 엔트리 포인트
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
-    fprintf(stderr, "LLVMFuzzerTestOneInput_START\n"); fflush(stderr); // 추가된 로그 및 fflush
+    fprintf(stderr, "LLVMFuzzerTestOneInput_MINIMAL_ENTRY_POINT_REACHED\n"); 
+    fflush(stderr);
 
-    // 매 입력마다 새로 생성 (상태 오염 방지)
+    // 아래 F' 관련 코드를 모두 주석 처리하여 함수 진입 여부만 확인
+/*
+    fprintf(stderr, "LLVMFuzzerTestOneInput_START\n"); fflush(stderr); 
+
     Svc::CommandDispatcherImpl impl("CmdDispImpl");
-    fprintf(stderr, "LLVMFuzzerTestOneInput_IMPL_CREATED\n"); fflush(stderr); // 추가된 로그 및 fflush
+    fprintf(stderr, "LLVMFuzzerTestOneInput_IMPL_CREATED\n"); fflush(stderr); 
     impl.init(10, 0);
-    fprintf(stderr, "LLVMFuzzerTestOneInput_IMPL_INITED\n"); fflush(stderr); // 추가된 로그 및 fflush
+    fprintf(stderr, "LLVMFuzzerTestOneInput_IMPL_INITED\n"); fflush(stderr); 
 
     Svc::CmdDispatcherFuzzTester tester(impl);
-    fprintf(stderr, "LLVMFuzzerTestOneInput_TESTER_CREATED\n"); fflush(stderr); // 추가된 로그 및 fflush
+    fprintf(stderr, "LLVMFuzzerTestOneInput_TESTER_CREATED\n"); fflush(stderr); 
     tester.init();
-    fprintf(stderr, "LLVMFuzzerTestOneInput_TESTER_INITED\n"); fflush(stderr); // 추가된 로그 및 fflush
+    fprintf(stderr, "LLVMFuzzerTestOneInput_TESTER_INITED\n"); fflush(stderr); 
     tester.connectPorts();
-    fprintf(stderr, "LLVMFuzzerTestOneInput_PORTS_CONNECTED\n"); fflush(stderr); // 추가된 로그 및 fflush
+    fprintf(stderr, "LLVMFuzzerTestOneInput_PORTS_CONNECTED\n"); fflush(stderr); 
 
-    // 기본 제공 명령어 등록 (NoOp, NoOpString, TestCmd1, ClearTracking 등)
     impl.regCommands();
-    fprintf(stderr, "LLVMFuzzerTestOneInput_CMDS_REGISTERED\n"); fflush(stderr); // 추가된 로그 및 fflush
-
-    // Fuzz 테스팅을 위한 추가 명령어 등록 (선택 사항)
-    // tester.registerCommands(10, 0x100);
+    fprintf(stderr, "LLVMFuzzerTestOneInput_CMDS_REGISTERED\n"); fflush(stderr); 
 
     if (Size < 1) {
         fprintf(stderr, "LLVMFuzzerTestOneInput_SKIP_SMALL_INPUT\n"); fflush(stderr);
-        return 0; // Fuzzer 입력이 너무 작으면 스킵
+        return 0; 
     }
 
-    // 입력 데이터 전체를 명령 버퍼로 사용
     Fw::ComBuffer buff;
     buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
     const size_t cap = buff.getBuffCapacity() - sizeof(FwPacketDescriptorType);
@@ -65,29 +64,23 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     buff.serialize(Data, len);
     fprintf(stderr, "LLVMFuzzerTestOneInput_BUFFER_SERIALIZED\n"); fflush(stderr);
 
-    // 상태 초기화 (Fuzzer 입력마다)
     tester.resetState();
     fprintf(stderr, "LLVMFuzzerTestOneInput_STATE_RESET\n"); fflush(stderr);
 
-    // 명령 전송
     tester.public_invoke_to_seqCmdBuff(0, buff, 0); 
     fprintf(stderr, "LLVMFuzzerTestOneInput_CMD_INVOKED\n"); fflush(stderr);
 
-    // 메시지 큐를 처리하여 명령 디스패치 수행
     tester.public_doDispatchLoop();
     fprintf(stderr, "LLVMFuzzerTestOneInput_DISPATCH_LOOP_DONE\n"); fflush(stderr);
 
-    // 결과를 가져오기 위해 getter 사용
     const auto& result = tester.getFuzzResult();
 
-    // 에러 발생 시 로그 출력 (퍼저가 크래시 입력을 쉽게 찾도록)
     if (result.hasError) {
         fprintf(stderr, "[FuzzError] Input size: %zu (clamped to %zu), LastOpcode: 0x%X, LastResponse: %d\n",
                 Size, len, result.lastOpcode, result.lastResponse.e);
         fflush(stderr);
-        // Fuzzer가 에러를 감지하도록 하기 위해, 필요시 여기서 abort() 또는 FW_ASSERT(false) 호출
-        // 예: if (result.lastResponse != Fw::CmdResponse::OK) FW_ASSERT(0, result.lastOpcode, result.lastResponse.e);
     }
     fprintf(stderr, "LLVMFuzzerTestOneInput_END\n"); fflush(stderr);
+*/
     return 0;
 }
