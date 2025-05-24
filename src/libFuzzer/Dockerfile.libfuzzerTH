@@ -46,13 +46,9 @@ RUN pip install -r "/workspace/Efficient-Fuzzer/src/fprime/requirements.txt"
 # 컴파일용 디렉토리 생성
 RUN mkdir -p build/libfuzzer
 
-# fprime 오토코더 실행 및 빌드 (fprime 서브모듈 내에서 실행)
-WORKDIR /workspace/Efficient-Fuzzer/src/fprime
-RUN fprime-util generate && fprime-util build
-RUN git submodule update --init --recursive
-
-# CmdDispatcher 테스트 하네스 생성
+# CmdDispatcher 테스트 하네스 생성 (UT 전용)
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher
+# Generate component FPP code and UT harness, then build only UT binaries
 RUN fprime-util generate --ut && fprime-util build --ut
 
 # 작업 디렉토리 다시 설정

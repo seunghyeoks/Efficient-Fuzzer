@@ -108,6 +108,8 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 target_sources(CmdDispatcherFuzzTester PRIVATE
     "${FPRIME_SRC_ROOT}/Os/Generic/DefaultPriorityQueue.cpp"
     "${FPRIME_SRC_ROOT}/Os/Generic/PriorityQueue.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Posix/DefaultMutex.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Posix/DefaultTask.cpp"
     "${FPRIME_SRC_ROOT}/Os/Posix/Mutex.cpp"
     "${FPRIME_SRC_ROOT}/Os/Posix/Task.cpp"
 )
@@ -138,8 +140,9 @@ target_include_directories(cmd_fuzzer PUBLIC
 
 # cmd_fuzzer 링크 수정: UT 라이브러리만 사용
 target_link_libraries(cmd_fuzzer PRIVATE
-    CmdDispatcherFuzzTester
+    # 그룹 링킹으로 CmdDispatcherFuzzTester와 UT 라이브러리를 함께 처리
     -Wl,--start-group
+    CmdDispatcherFuzzTester
     ${LIB_OS_A_PATH}
     ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
@@ -162,8 +165,9 @@ set_target_properties(TestNominal PROPERTIES CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} 
 
 # TestNominal 링크 수정: UT 라이브러리만 사용
 target_link_libraries(TestNominal PRIVATE
-    CmdDispatcherFuzzTester
+    # 그룹 링킹으로 CmdDispatcherFuzzTester와 UT 라이브러리를 함께 처리
     -Wl,--start-group
+    CmdDispatcherFuzzTester
     ${LIB_OS_A_PATH}
     ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
