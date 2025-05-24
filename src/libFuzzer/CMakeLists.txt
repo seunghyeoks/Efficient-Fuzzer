@@ -14,50 +14,50 @@ set(FPRIME_INC_LIST
     "${FPRIME_SRC_ROOT}/Os/Generic"
     "${FPRIME_SRC_ROOT}/Os/Linux"
     "${FPRIME_SRC_ROOT}/Fw/Types"
-    "${FPRIME_SRC_ROOT}"
+    "${FPRIME_SRC_ROOT}/cmake/platform/types"
 )
 
-set(FPRIME_LIB_DIR "${FPRIME_UT_ROOT}/lib/Linux")
+set(FPRIME_UT_LIB_DIR "${FPRIME_UT_ROOT}/lib/Linux")
 
 # 링크 라이브러리 목록
 set(FPRIME_LINK_LIBS_PATHS
-    ${FPRIME_LIB_DIR}/libFw_Cfg.a
-    ${FPRIME_LIB_DIR}/libFw_Cmd.a
-    ${FPRIME_LIB_DIR}/libFw_Com.a
-    ${FPRIME_LIB_DIR}/libFw_Comp.a
-    ${FPRIME_LIB_DIR}/libFw_CompQueued.a
-    ${FPRIME_LIB_DIR}/libFw_Log.a
-    ${FPRIME_LIB_DIR}/libFw_Logger.a
-    ${FPRIME_LIB_DIR}/libFw_Obj.a
-    ${FPRIME_LIB_DIR}/libFw_Port.a
-    ${FPRIME_LIB_DIR}/libFw_Prm.a
-    ${FPRIME_LIB_DIR}/libFw_Time.a
-    ${FPRIME_LIB_DIR}/libFw_Tlm.a
-    ${FPRIME_LIB_DIR}/libFw_Types.a
-    ${FPRIME_LIB_DIR}/libOs.a
-    ${FPRIME_LIB_DIR}/libOs_Console_Common.a
-    ${FPRIME_LIB_DIR}/libOs_Console_Posix.a
-    ${FPRIME_LIB_DIR}/libOs_Cpu_Common.a
-    ${FPRIME_LIB_DIR}/libOs_Cpu_Linux.a
-    ${FPRIME_LIB_DIR}/libOs_File_Common.a
-    ${FPRIME_LIB_DIR}/libOs_File_Posix.a
-    ${FPRIME_LIB_DIR}/libOs_Generic_PriorityQueue.a
-    ${FPRIME_LIB_DIR}/libOs_Generic_Types.a
-    ${FPRIME_LIB_DIR}/libOs_Memory_Common.a
-    ${FPRIME_LIB_DIR}/libOs_Memory_Linux.a
-    ${FPRIME_LIB_DIR}/libOs_Mutex_Common.a
-    ${FPRIME_LIB_DIR}/libOs_Mutex_Posix.a
-    ${FPRIME_LIB_DIR}/libOs_Posix_Shared.a
-    ${FPRIME_LIB_DIR}/libOs_Queue_Common.a
-    ${FPRIME_LIB_DIR}/libOs_RawTime_Common.a
-    ${FPRIME_LIB_DIR}/libOs_RawTime_Posix.a
-    ${FPRIME_LIB_DIR}/libOs_Task_Common.a
-    ${FPRIME_LIB_DIR}/libOs_Task_Posix.a
-    ${FPRIME_LIB_DIR}/libSvc_CmdDispatcher.a
-    ${FPRIME_LIB_DIR}/libSvc_Ping.a
-    ${FPRIME_LIB_DIR}/libUtils_Hash.a
-    ${FPRIME_LIB_DIR}/libconfig.a
-    ${FPRIME_LIB_DIR}/libsnprintf-format.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Cfg.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Cmd.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Com.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Comp.a
+    ${FPRIME_UT_LIB_DIR}/libFw_CompQueued.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Log.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Logger.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Obj.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Port.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Prm.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Time.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Tlm.a
+    ${FPRIME_UT_LIB_DIR}/libFw_Types.a
+    ${FPRIME_UT_LIB_DIR}/libOs.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Console_Common.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Console_Posix.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Cpu_Common.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Cpu_Linux.a
+    ${FPRIME_UT_LIB_DIR}/libOs_File_Common.a
+    ${FPRIME_UT_LIB_DIR}/libOs_File_Posix.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Generic_Types.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Memory_Common.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Memory_Linux.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Mutex_Common.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Mutex_Posix.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Posix_Shared.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Queue_Common.a
+    ${FPRIME_UT_LIB_DIR}/libOs_RawTime_Common.a
+    ${FPRIME_UT_LIB_DIR}/libOs_RawTime_Posix.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Task_Common.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Task_Posix.a
+    ${FPRIME_UT_LIB_DIR}/libSvc_CmdDispatcher.a
+    ${FPRIME_UT_LIB_DIR}/libSvc_Ping.a
+    ${FPRIME_UT_LIB_DIR}/libUtils_Hash.a
+    ${FPRIME_UT_LIB_DIR}/libconfig.a
+    ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a
 )
 
 # CmdDispatcher 하네스 소스 파일 정의
