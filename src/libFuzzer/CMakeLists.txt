@@ -10,7 +10,9 @@ set(FPRIME_UT_ROOT "${FPRIME_SRC_ROOT}/build-fprime-automatic-native-ut")
 set(FPRIME_INC_LIST
     "${FPRIME_UT_ROOT}"
     "${FPRIME_UT_ROOT}/F-Prime"
-    "${FPRIME_UT_ROOT}/config"
+    "${FPRIME_SRC_ROOT}/config"
+    "${FPRIME_SRC_ROOT}/Os/Generic"
+    "${FPRIME_SRC_ROOT}/Os/Linux"
 )
 
 set(FPRIME_LIB_DIR "${FPRIME_UT_ROOT}/lib/Linux")
