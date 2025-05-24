@@ -3,7 +3,8 @@ project(FPrimeCmdDispatcherFuzzer)
 
 # 컴파일 옵션 설정
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fsanitize=fuzzer,address -Wno-unused-parameter")
+# 전역 CXX_FLAGS: -fsanitize=fuzzer 제거, -Wno-inconsistent-missing-override 추가
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-inconsistent-missing-override")
 
 # fprime UT harness 전용 매크로 정의 (protected/private 접근 허용)
 add_definitions(
@@ -150,6 +151,9 @@ target_compile_definitions(OsStubImplementation PRIVATE
 add_executable(cmd_fuzzer
     libFuzzer_main.cpp
 )
+# cmd_fuzzer에만 -fsanitize=fuzzer 옵션 추가
+target_compile_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer)
+
 # cmd_fuzzer include 및 링크
 target_include_directories(cmd_fuzzer PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -178,7 +182,7 @@ target_include_directories(TestNominal PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
     ${FPRIME_INC_LIST}
 )
-# TestNominal은 fuzzer sanitize 옵션 없이 빌드
+# TestNominal은 fuzzer sanitize 옵션 없이 빌드 (기존 설정 유지)
 set_target_properties(TestNominal PROPERTIES CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -Wall -Wextra -fsanitize=address")
 
 target_link_libraries(TestNominal PRIVATE
