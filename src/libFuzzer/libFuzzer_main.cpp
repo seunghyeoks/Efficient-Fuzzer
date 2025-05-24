@@ -30,17 +30,15 @@ Fw::ComBuffer createInvalidSizeCommandBuffer(const uint8_t* data, size_t size) {
 
 // libFuzzer 엔트리 포인트
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
-    fprintf(stderr, "LLVMFuzzerTestOneInput_MINIMAL_ENTRY_POINT_REACHED\n"); 
-    fflush(stderr);
 
-    // 아래 F' 관련 코드를 모두 주석 처리하여 함수 진입 여부만 확인
-/*
-    fprintf(stderr, "LLVMFuzzerTestOneInput_START\n"); fflush(stderr); 
+    fprintf(stderr, "LLVMFuzzerTestOneInput_START\n"); fflush(stderr);
 
     Svc::CommandDispatcherImpl impl("CmdDispImpl");
     fprintf(stderr, "LLVMFuzzerTestOneInput_IMPL_CREATED\n"); fflush(stderr); 
     impl.init(10, 0);
     fprintf(stderr, "LLVMFuzzerTestOneInput_IMPL_INITED\n"); fflush(stderr); 
+
+/*
 
     Svc::CmdDispatcherFuzzTester tester(impl);
     fprintf(stderr, "LLVMFuzzerTestOneInput_TESTER_CREATED\n"); fflush(stderr); 
