@@ -14,6 +14,7 @@ set(FPRIME_INC_LIST
     "${FPRIME_SRC_ROOT}/Os/Generic"
     "${FPRIME_SRC_ROOT}/Os/Linux"
     "${FPRIME_SRC_ROOT}/Fw/Types"
+    "${FPRIME_SRC_ROOT}"
     "${FPRIME_SRC_ROOT}/cmake/platform/types"
 )
 
