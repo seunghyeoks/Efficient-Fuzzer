@@ -28,92 +28,6 @@ Fw::ComBuffer createInvalidSizeCommandBuffer(const uint8_t* data, size_t size) {
     return buff;
 }
 
-// Google Test의 Nominal Dispatch와 유사한 테스트를 수행하는 함수
-static bool predefinedTestDone = false;
-void runPredefinedNominalTest(Svc::CommandDispatcherImpl& impl, Svc::CmdDispatcherFuzzTester& tester) {
-    if (predefinedTestDone) {
-        return;
-    }
-    predefinedTestDone = true;
-
-    fprintf(stderr, "Running predefined nominal test...\\n");
-
-    // runNominalDispatch 테스트와 유사하게 특정 명령어 등록 및 전송
-    FwOpcodeType testOpCode = 0x50;
-    U32 testCmdArg = 100;
-    U32 testContext = 110;
-
-    // 명령어 등록 (CmdDispatcherFuzzTester를 통해 호출)
-    tester.public_invoke_to_compCmdReg(0, testOpCode);
-    // impl.doDispatch(); // 일반적으로 CmdReg은 동기적으로 처리될 수 있음
-
-    // 명령어 버퍼 생성
-    Fw::ComBuffer buff;
-    // FW_ASSERT(buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND)) == Fw::FW_SERIALIZE_OK);
-    // FW_ASSERT(buff.serialize(testOpCode) == Fw::FW_SERIALIZE_OK);
-    // FW_ASSERT(buff.serialize(testCmdArg) == Fw::FW_SERIALIZE_OK);
-    buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-    buff.serialize(testOpCode);
-    buff.serialize(testCmdArg);
-
-    // 상태 초기화
-    tester.resetState();
-
-    // 명령 전송 (dispatchFuzzedCommand와 유사한 로직)
-    tester.public_invoke_to_seqCmdBuff(0, buff, testContext);
-    impl.doDispatch(); // 메시지 큐 처리하여 명령 디스패치 수행
-    while (impl.doDispatch() == Fw::QueuedComponentBase::MSG_DISPATCH_OK) {
-        ; // 추가 디스패치가 남아 있을 수 있으므로 반복 처리
-    }
-    
-    // 응답은 CmdDispatcherFuzzTester의 핸들러에서 FuzzResult에 기록됨
-    // 실제 GTest에서는 CommandDispatcherImplTester에서 직접 응답 포트를 호출하여 상태를 확인하지만,
-    // 여기서는 FuzzResult를 통해 간접적으로 확인
-
-    Svc::CmdDispatcherFuzzTester::FuzzResult result = tester.getFuzzResult(); // 직접 결과 가져오기 (주의: m_fuzzResult가 public이어야 함 또는 getter 사용)
-                                                                        // CmdDispatcherFuzzTester.hpp에 getFuzzResult() 같은 getter 추가 고려
-
-    // 결과 확인
-    if (result.hasError) {
-        fprintf(stderr, "[PredefinedTestError] LastOpcode: 0x%X, LastResponse: %d, DispatchCount: %u, ErrorCount: %u\n",
-                result.lastOpcode, result.lastResponse.e, result.dispatchCount, result.errorCount);
-        // 필요시 여기서 abort() 또는 exit(1) 호출하여 Fuzzer 중단 가능
-        // FW_ASSERT(false); // Fuzzer가 크래시로 인식하도록
-    } else {
-        fprintf(stderr, "[PredefinedTestSuccess] LastOpcode: 0x%X, LastResponse: %d, DispatchCount: %u, ErrorCount: %u\n",
-                result.lastOpcode, result.lastResponse.e, result.dispatchCount, result.errorCount);
-    }
-    
-    bool nominalTestPassed = true;
-    if (result.lastOpcode != testOpCode && result.lastOpcode != 0) { // OpCode가 아직 설정되지 않았을 수 있음 (응답이 오기 전)
-                                                                 // 또는 응답 OpCode가 요청과 다를 경우
-        fprintf(stderr, "Predefined Test Mismatch: lastOpcode. Expected 0x%X or 0, Got 0x%X\n", testOpCode, result.lastOpcode);
-        nominalTestPassed = false;
-    }
-    if (result.lastResponse != Fw::CmdResponse::OK && result.lastResponse.e != Fw::CmdResponse::SERIALIZED_SIZE) { // 초기값일 수 있음
-        fprintf(stderr, "Predefined Test Mismatch: lastResponse. Expected Fw::CmdResponse::OK (%d) or initial value, Got %d\n", Fw::CmdResponse::OK, result.lastResponse.e);
-        nominalTestPassed = false;
-    }
-
-    if (nominalTestPassed) {
-         fprintf(stderr, "Predefined nominal test behavior seems OK.\\n");
-    } else {
-         fprintf(stderr, "Predefined nominal test behavior FAILED. Check logs.\\n");
-         // FW_ASSERT(false); // Fuzzer가 크래시로 인식하도록
-    }
-    
-    // 다음 퍼즈 입력을 위해 상태 초기화
-    tester.resetState(); 
-    fprintf(stderr, "Finished predefined nominal test.\\n");
-}
-
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
-    fprintf(stderr, "Minimal LLVMFuzzerTestOneInput CALLED (to stderr)\n");
-    return 0;
-}
-
-/*
-
 // libFuzzer 엔트리 포인트
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     fprintf(stderr, "LLVMFuzzerTestOneInput_START\\n"); // 추가된 로그
@@ -167,4 +81,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
 
     return 0;
 }
-*/
