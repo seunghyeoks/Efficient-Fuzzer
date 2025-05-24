@@ -37,6 +37,11 @@ WORKDIR /workspace/Efficient-Fuzzer
 RUN git submodule init && \
     git submodule update --recursive
 
+# !!!!! 수정된 Queue.cpp 덮어쓰기 !!!!!
+# Docker 빌드 컨텍스트의 src/libFuzzer/modified_stub_queue/Queue.cpp 를
+# 이미지 내의 /workspace/Efficient-Fuzzer/src/fprime/Os/Stub/Queue.cpp 로 복사
+COPY src/libFuzzer/modified_stub_queue/Queue.cpp /workspace/Efficient-Fuzzer/src/fprime/Os/Stub/Queue.cpp
+
 # fprime 도구 추가 설치
 RUN pip install -r "/workspace/Efficient-Fuzzer/src/fprime/requirements.txt"
 
