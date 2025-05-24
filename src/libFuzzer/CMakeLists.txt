@@ -153,6 +153,7 @@ add_executable(cmd_fuzzer
 )
 # cmd_fuzzer에만 -fsanitize=fuzzer 옵션 추가
 target_compile_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer)
+target_link_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer)
 
 # cmd_fuzzer include 및 링크
 target_include_directories(cmd_fuzzer PUBLIC
