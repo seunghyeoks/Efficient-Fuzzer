@@ -43,7 +43,6 @@ echo "=== libFuzzer 실행 시작 (현재 비활성화됨) ==="
 # 퍼징 실행
 ./cmd_dispatcher_fuzzer -max_len=1024 \
                        -artifact_prefix=findings/ \
-                       -ignore_crashes=1 \
                        -print_final_stats=1 \
                        -fork=1 \
                        -runs=-1 \
