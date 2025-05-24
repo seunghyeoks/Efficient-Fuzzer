@@ -20,7 +20,7 @@ make TestNominal
 
 # TestNominal 실행
 echo "=== TestNominal 실행 시작 ==="
-if ! $BUILD_DIR/bin/TestNominal; then
+if ! $BUILD_DIR/TestNominal; then
     echo "TestNominal FAILED. Exiting."
     exit 1
 fi
