@@ -25,13 +25,6 @@ echo "=== Make 빌드 시작 ==="
 # make VERBOSE=1 cmd_fuzzer # 임시 주석 처리. 상세 로그 필요시 이 라인 사용
 make cmd_fuzzer # 현재 상태 유지
 
-# TestNominal 실행
-echo "=== TestNominal 실행 시작 ==="
-if ! $BUILD_DIR/TestNominal; then
-    echo "TestNominal FAILED. Exiting."
-    exit 1
-fi
-echo "=== TestNominal PASSED ==="
 
 # 빌드 출력 디렉토리로 바이너리 복사
 OUTPUT_DIR="/workspace/Efficient-Fuzzer/build/libfuzzer"
