@@ -83,6 +83,12 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
     STATIC=
 )
 
+add_library(DefaultPriorityQueue STATIC
+    ${FPRIME_SRC_ROOT}/Os/Generic/DefaultPriorityQueue.cpp
+)
+target_include_directories(DefaultPriorityQueue PUBLIC ${FPRIME_INC_LIST})
+target_compile_definitions(DefaultPriorityQueue PRIVATE BUILD_UT PROTECTED=public PRIVATE=public STATIC=)
+
 # snprintf-format 라이브러리
 add_library(snprintf-format ${FPRIME_SRC_ROOT}/Fw/Types/snprintf_format.cpp)
 target_include_directories(snprintf-format PUBLIC ${FPRIME_INC_LIST})
@@ -101,6 +107,7 @@ target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
     ${LIB_OS_A_PATH}
     ${FPRIME_LINK_LIBS_PATHS}
+    DefaultPriorityQueue
     -Wl,--end-group
     gcov
     snprintf-format
