@@ -44,13 +44,16 @@ RUN pip install -r "/workspace/Efficient-Fuzzer/src/fprime/requirements.txt"
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime
 RUN git submodule init && git submodule update --init --recursive
 
-# 컴파일용 디렉토리 생성
-# RUN mkdir -p build/libfuzzer # This seems to be for the fuzzer build, can be moved later or created by CMake
-
-# CmdDispatcher 테스트 하네스 생성 (UT 전용)
-WORKDIR /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher
 # Generate component FPP code and UT harness, then build only UT binaries
-RUN fprime-util generate --ut && fprime-util build --ut
+# fprime-util generate --ut를 프로젝트 루트에서 실행
+RUN echo "=== Running fprime-util generate --ut in src/fprime ===" && \
+    fprime-util generate --ut && \
+    echo "=== Running fprime-util build --ut in src/fprime ===" && \
+    fprime-util build --ut
+
+# 생성된 FppConstantsAc.hpp 파일 확인용 로그 추가
+RUN echo "=== Checking for FppConstantsAc.hpp after generate/build in src/fprime ===" && \
+    find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/ -name FppConstantsAc.hpp -ls || echo "FppConstantsAc.hpp not found anywhere in UT build directory"
 
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime
 #RUN fprime-util generate && fprime-util build
