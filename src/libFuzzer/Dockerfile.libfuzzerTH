@@ -52,7 +52,7 @@ RUN echo "=== Running fprime-util generate --ut in src/fprime ===" && \
     fprime-util build --ut
 
 # 생성된 FppConstantsAc.hpp 파일 확인용 로그 추가
-RUN echo "=== Checking for FppConstantsAc.hpp after generate/build in src/fprime ===" && \
+RUN echo "=== Checking for FppConstantsAc.hpp after generate/build in src/fprime (searching entire UT build dir) ===" && \
     find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/ -name FppConstantsAc.hpp -ls || echo "FppConstantsAc.hpp not found anywhere in UT build directory"
 
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime
