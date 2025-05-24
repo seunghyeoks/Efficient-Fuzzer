@@ -8,15 +8,21 @@ echo "=== F-Prime CmdDispatcher LibFuzzer 시작 ==="
 
 # CMake 기반 빌드 디렉토리 설정
 BUILD_DIR="/workspace/Efficient-Fuzzer/src/libFuzzer/build"
+
+# !!!!! 수정: 빌드 디렉토리 항상 새로 생성 !!!!!
+echo "=== 기존 빌드 디렉토리 삭제 ==="
+rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
 echo "=== CMake 구성 시작 ==="
+# CMake 실행 시 상세 로그 출력 옵션 추가 (필요시)
+# cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
 cmake ..
 
 echo "=== Make 빌드 시작 ==="
- make cmd_fuzzer # 임시 주석 처리
-make TestNominal
+# make VERBOSE=1 cmd_fuzzer # 임시 주석 처리. 상세 로그 필요시 이 라인 사용
+make cmd_fuzzer # 현재 상태 유지
 
 # TestNominal 실행
 echo "=== TestNominal 실행 시작 ==="

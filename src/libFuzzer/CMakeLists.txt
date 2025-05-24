@@ -14,6 +14,7 @@ set(FPRIME_INC_LIST
     "${FPRIME_SRC_ROOT}/Os/Generic"
     "${FPRIME_SRC_ROOT}/Os/Linux"
     "${FPRIME_SRC_ROOT}/Fw/Types"
+    "${FPRIME_SRC_ROOT}"
 )
 
 set(FPRIME_LIB_DIR "${FPRIME_UT_ROOT}/lib/Linux")
