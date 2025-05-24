@@ -6,6 +6,9 @@
 #include <cstring>
 #include <algorithm>
 #include <cstdint>
+#include <fstream> // 파일 출력을 위해 추가
+#include <string>  // std::string 사용을 위해 추가
+#include <sstream> // 문자열 스트림 사용을 위해 추가
 // #include <cstdio> // fprintf를 위해 추가했었으나, 이제 사용하지 않으므로 주석 처리 또는 삭제 가능
 
 // 특수한 입력 패턴을 생성하는 함수들 (현재는 LLVMFuzzerTestOneInput에서 직접 사용되지 않음)
@@ -69,7 +72,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // 이를 통해 각 퍼즈 입력이 독립적으로 테스트되도록 보장합니다.
     tester.resetState();
 
-/*
+
 
     // 준비된 명령어 버퍼(buff)를 Fuzz 테스터를 통해 CommandDispatcherImpl로 전송합니다.
     // 0은 포트 번호, context는 명령어 컨텍스트 (여기서는 0)입니다.
@@ -82,15 +85,32 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // Fuzz 테스터로부터 명령어 처리 결과를 가져옵니다.
     const auto& result = tester.getFuzzResult();
 
-    // 만약 Fuzz 테스터가 명령어 처리 중 오류를 감지했다면, 관련 정보를 출력할 수 있습니다.
-    // (현재는 에러 로그 출력이 주석 처리되어 있습니다)
+    // 만약 Fuzz 테스터가 명령어 처리 중 오류를 감지했다면
     if (result.hasError) {
-        // fprintf(stderr, "[FuzzError] Input size: %zu (clamped to %zu), LastOpcode: 0x%X, LastResponse: %d\n",
-        //         Size, len, result.lastOpcode, result.lastResponse.e);
-        // fflush(stderr);
+        // 파일 이름을 위한 간단한 카운터 (실제 사용 시에는 더 견고한 방법 권장)
+        static int error_file_counter = 0;
+        std::ostringstream filename_stream;
+        // findings 디렉토리 아래에 저장 (entrypoint 스크립트의 -artifact_prefix와 유사한 경로)
+        filename_stream << "findings/logical_error_" << error_file_counter++ << "_op" << result.lastOpcode << "_resp" << result.lastResponse.e << ".dat";
+        std::string error_filename = filename_stream.str();
+
+        std::ofstream outfile(error_filename, std::ios::binary);
+        if (outfile.is_open()) {
+            // 원본 입력 데이터 저장
+            outfile.write(reinterpret_cast<const char*>(Data), len);
+            // 추가적인 에러 정보도 파일에 기록 가능 (예: 텍스트 형태로)
+            outfile << "\n--- Error Info ---\n";
+            outfile << "Input Size (Original): " << Size << "\n";
+            outfile << "Input Size (Clamped): " << len << "\n";
+            outfile << "Last Opcode: 0x" << std::hex << result.lastOpcode << std::dec << "\n";
+            outfile << "Last Response: " << result.lastResponse.e << "\n";
+            outfile.close();
+        }
+
         // Fuzzer가 에러를 감지하도록 하기 위해, 필요시 여기서 abort() 또는 FW_ASSERT(false) 호출
-        // 예: if (result.lastResponse != Fw::CmdResponse::OK) FW_ASSERT(0, result.lastOpcode, result.lastResponse.e);
+        // 예를 들어, 특정 논리적 에러도 크래시처럼 취급하고 싶다면 FW_ASSERT(false)를 사용할 수 있습니다.
+        // FW_ASSERT(0, result.lastOpcode, result.lastResponse.e);
     }
-*/
+
     return 0;
 }
