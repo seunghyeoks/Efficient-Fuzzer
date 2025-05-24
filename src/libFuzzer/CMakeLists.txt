@@ -90,11 +90,11 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 )
 
 # CmdDispatcherFuzzTester 라이브러리가 사용하는 F' 라이브러리들을 링크합니다.
-target_link_libraries(CmdDispatcherFuzzTester PRIVATE
-    -Wl,--start-group
-    ${FPRIME_LINK_LIBS_PATHS}
-    -Wl,--end-group
-)
+# target_link_libraries(CmdDispatcherFuzzTester PRIVATE
+#     -Wl,--start-group
+#     ${FPRIME_LINK_LIBS_PATHS}
+#     -Wl,--end-group
+# ) # 이 부분을 주석 처리 또는 삭제합니다.
 
 # fuzzer 메인 실행 파일
 add_executable(cmd_fuzzer libFuzzer_main.cpp)
@@ -108,8 +108,16 @@ target_include_directories(cmd_fuzzer PUBLIC
 )
 target_link_libraries(cmd_fuzzer PRIVATE
     -Wl,--start-group
-    CmdDispatcherFuzzTester
-    ${FPRIME_LINK_LIBS_PATHS}
+    # 주요 라이브러리 우선 명시
+    ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Mutex_Posix.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Task_Posix.a
+    ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a # 해당 파일이 있다면 추가 (정확한 파일명 확인 필요)
+    # 또는 Os::QueueInterface::getDelegate를 제공하는 라이브러리
+    # 예: ${FPRIME_UT_LIB_DIR}/libOs_Posix_Shared.a 또는 ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a 등
+
+    CmdDispatcherFuzzTester # 사용자 정의 테스터 라이브러리
+    ${FPRIME_LINK_LIBS_PATHS} # 전체 F' 라이브러리 목록
     -Wl,--end-group
     gcov
 )
