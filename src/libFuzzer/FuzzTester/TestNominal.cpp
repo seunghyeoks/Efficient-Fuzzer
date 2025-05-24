@@ -5,35 +5,12 @@
 #include <Fw/Types/Assert.hpp>
 #include <cstdio> // fprintf 사용을 위해 추가
 
-// Basic console logger
-class ConsoleLogger : public Os::Log {
-    public:
-        ConsoleLogger() {}
-        ~ConsoleLogger() {}
-
-        void log(
-            const char* fmt,
-            POINTER_CAST a1,
-            POINTER_CAST a2,
-            POINTER_CAST a3,
-            POINTER_CAST a4,
-            POINTER_CAST a5,
-            POINTER_CAST a6
-        ) {
-            (void)fprintf(stdout, fmt, a1, a2, a3, a4, a5, a6);
-        }
-};
-
-
 int main(int argc, char* argv[]) {
     // Os::Log::registerLogger()는 프로젝트 설정에 따라 다를 수 있으므로,
     // 여기서는 간단한 printf 로거를 사용하거나, FPrime의 로깅 메커니즘을 따릅니다.
     // FPrime GTest 환경에서는 보통 TestLog::TestLogger가 사용됩니다.
     // 여기서는 Fuzz 테스팅 환경과 유사하게 stderr에 직접 출력하거나,
     // 간단한 로거를 사용합니다.
-    ConsoleLogger logger;
-    Os::Log::registerLogger(&logger);
-
 
     fprintf(stderr, "Starting TestNominal...\n");
 
