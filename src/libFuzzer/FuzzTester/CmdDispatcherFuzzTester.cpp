@@ -184,11 +184,22 @@ namespace Svc {
     }
 
     void CmdDispatcherFuzzTester::public_doDispatchLoop() {
-        this->m_impl.doDispatch(); // 메시지 큐를 처리하여 명령 디스패치 수행
+        // this->m_impl.doDispatch(); // 메시지 큐를 처리하여 명령 디스패치 수행 - 첫 호출은 루프에 통합
         // 추가 디스패치가 남아 있을 수 있으므로 반복 처리
-        while (this->m_impl.doDispatch() == Fw::QueuedComponentBase::MSG_DISPATCH_OK) {
-            ;
+        
+        const int MAX_DISPATCH_COUNT = 5; // 예: 최대 5번 디스패치 시도
+        int dispatch_attempts = 0;
+        
+        // 메시지 큐를 처리하여 명령 디스패치 수행
+        // 제한된 횟수만큼만 doDispatch를 호출하여 무한 블로킹 방지 시도
+        while (dispatch_attempts < MAX_DISPATCH_COUNT && 
+               this->m_impl.doDispatch() == Fw::QueuedComponentBase::MSG_DISPATCH_OK) {
+            dispatch_attempts++;
+            // 루프가 돌 때마다 로그를 남기면 좋겠지만, 현재 printf가 안되므로 카운트만 합니다.
         }
+        // 만약 dispatch_attempts가 MAX_DISPATCH_COUNT에 도달했다면,
+        // 여전히 처리할 메시지가 남아있을 수 있으나 강제 종료한 것입니다.
+        // 그렇지 않다면, 큐가 비었거나 (BLOCKING 상태 진입 전) MSG_DISPATCH_OK 외의 상태가 반환된 것입니다.
     }
 
 } // namespace Svc
