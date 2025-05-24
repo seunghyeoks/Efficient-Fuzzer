@@ -38,15 +38,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     impl.init(10, 0);
     fprintf(stderr, "LLVMFuzzerTestOneInput_IMPL_INITED\n"); fflush(stderr); 
 
-/*
-
+    // Svc::CmdDispatcherFuzzTester 관련 부분 주석 해제 시작
     Svc::CmdDispatcherFuzzTester tester(impl);
     fprintf(stderr, "LLVMFuzzerTestOneInput_TESTER_CREATED\n"); fflush(stderr); 
     tester.init();
     fprintf(stderr, "LLVMFuzzerTestOneInput_TESTER_INITED\n"); fflush(stderr); 
     tester.connectPorts();
     fprintf(stderr, "LLVMFuzzerTestOneInput_PORTS_CONNECTED\n"); fflush(stderr); 
+    // Svc::CmdDispatcherFuzzTester 관련 부분 주석 해제 끝
 
+/* // 여기서부터 다시 주석 시작
     impl.regCommands();
     fprintf(stderr, "LLVMFuzzerTestOneInput_CMDS_REGISTERED\n"); fflush(stderr); 
 
