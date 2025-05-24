@@ -166,8 +166,11 @@ target_include_directories(cmd_fuzzer PUBLIC
 target_link_libraries(cmd_fuzzer PRIVATE
     CmdDispatcherFuzzTester
     -Wl,--start-group
-    OsStubImplementation
-    ${LIB_OS_A_PATH}
+    ${FPRIME_NATIVE_LIB_DIR}/libOs.a                 # POSIX 통합 라이브러리
+    ${FPRIME_NATIVE_LIB_DIR}/libOs_Generic_PriorityQueue.a
+    ${FPRIME_NATIVE_LIB_DIR}/libOs_Posix_Mutex.a
+    ${FPRIME_NATIVE_LIB_DIR}/libOs_Posix_Task.a
+    ${FPRIME_NATIVE_LIB_DIR}/libSvc_CmdDispatcher.a
     ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
     gcov
@@ -189,8 +192,11 @@ set_target_properties(TestNominal PROPERTIES CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} 
 target_link_libraries(TestNominal PRIVATE
     CmdDispatcherFuzzTester
     -Wl,--start-group
-    OsStubImplementation
-    ${LIB_OS_A_PATH}
+    ${FPRIME_NATIVE_LIB_DIR}/libOs.a                 # POSIX 통합 라이브러리
+    ${FPRIME_NATIVE_LIB_DIR}/libOs_Generic_PriorityQueue.a
+    ${FPRIME_NATIVE_LIB_DIR}/libOs_Posix_Mutex.a
+    ${FPRIME_NATIVE_LIB_DIR}/libOs_Posix_Task.a
+    ${FPRIME_NATIVE_LIB_DIR}/libSvc_CmdDispatcher.a
     ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
     gcov

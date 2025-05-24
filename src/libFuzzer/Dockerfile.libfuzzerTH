@@ -38,7 +38,7 @@ RUN git submodule init && \
     git submodule update --recursive
 
 # !!!!! sed 명령어로 Queue.cpp 직접 수정 !!!!!
-RUN sed -i 's/return QueueInterface::Status::UNKNOWN_ERROR;/return QueueInterface::Status::OP_OK;/g' /workspace/Efficient-Fuzzer/src/fprime/Os/Stub/Queue.cpp
+# RUN sed -i 's/return QueueInterface::Status::UNKNOWN_ERROR;/return QueueInterface::Status::OP_OK;/g' /workspace/Efficient-Fuzzer/src/fprime/Os/Stub/Queue.cpp
 
 # fprime 도구 추가 설치
 RUN pip install -r "/workspace/Efficient-Fuzzer/src/fprime/requirements.txt"
@@ -53,7 +53,7 @@ RUN git submodule update --init --recursive
 
 # CmdDispatcher 테스트 하네스 생성
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher
-RUN fprime-util generate --ut && fprime-util build --ut
+RUN fprime-util generate --ut  --os=POSIX && fprime-util build --ut --os=POSIX
 
 # 작업 디렉토리 다시 설정
 WORKDIR /workspace/Efficient-Fuzzer
