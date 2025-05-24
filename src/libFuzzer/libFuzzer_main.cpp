@@ -64,8 +64,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // 상태 초기화 (Fuzzer 입력마다)
     tester.resetState();
 
-    // 명령 전송 및 결과 확인
-    auto result = tester.dispatchFuzzedCommand(buff, 0);
+    // 명령 전송
+    tester.public_invoke_to_seqCmdBuff(0, buff, 0); 
+
+    // 메시지 큐를 처리하여 명령 디스패치 수행
+    tester.public_doDispatchLoop();
+
+    // 결과를 가져오기 위해 getter 사용
+    const auto& result = tester.getFuzzResult();
 
     // 에러 발생 시 로그 출력 (퍼저가 크래시 입력을 쉽게 찾도록)
     if (result.hasError) {

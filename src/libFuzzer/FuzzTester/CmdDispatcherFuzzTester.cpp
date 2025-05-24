@@ -183,4 +183,12 @@ namespace Svc {
         // Depending on the fuzzing strategy, you might want to set m_fuzzResult.hasError = true here.
     }
 
+    void CmdDispatcherFuzzTester::public_doDispatchLoop() {
+        this->m_impl.doDispatch(); // 메시지 큐를 처리하여 명령 디스패치 수행
+        // 추가 디스패치가 남아 있을 수 있으므로 반복 처리
+        while (this->m_impl.doDispatch() == Fw::QueuedComponentBase::MSG_DISPATCH_OK) {
+            ;
+        }
+    }
+
 } // namespace Svc

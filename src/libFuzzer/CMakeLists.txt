@@ -17,6 +17,7 @@ set(FPRIME_INC_LIST
     "${FPRIME_SRC_ROOT}/Fw/Types"
     "${FPRIME_SRC_ROOT}"
     "${FPRIME_SRC_ROOT}/cmake/platform/types"
+    "${FPRIME_SRC_ROOT}/
 )
 
 set(FPRIME_UT_LIB_DIR "${FPRIME_UT_ROOT}/lib/Linux")
@@ -96,6 +97,7 @@ target_link_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer)
 target_include_directories(cmd_fuzzer PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
+    "${FPRIME_SRC_ROOT}/Fw/Types"
     ${FPRIME_INC_LIST}
 )
 target_link_libraries(cmd_fuzzer PRIVATE

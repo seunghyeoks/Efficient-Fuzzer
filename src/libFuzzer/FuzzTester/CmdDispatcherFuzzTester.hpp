@@ -65,6 +65,9 @@ namespace Svc {
             const FuzzResult& getFuzzResult() const {
                 return m_fuzzResult;
             }
+
+            // Public wrapper for doDispatch loop
+            void public_doDispatchLoop();
         
         protected:
             // TesterBase 핸들러 오버라이드
