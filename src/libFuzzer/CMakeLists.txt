@@ -17,7 +17,6 @@ set(FPRIME_INC_LIST
     "${FPRIME_SRC_ROOT}/Fw/Types"
     "${FPRIME_SRC_ROOT}"
     "${FPRIME_SRC_ROOT}/cmake/platform/types"
-    "${FPRIME_SRC_ROOT}/
 )
 
 set(FPRIME_UT_LIB_DIR "${FPRIME_UT_ROOT}/lib/Linux")
@@ -88,6 +87,13 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
     PROTECTED=public
     PRIVATE=public
     STATIC=
+)
+
+# CmdDispatcherFuzzTester 라이브러리가 사용하는 F' 라이브러리들을 링크합니다.
+target_link_libraries(CmdDispatcherFuzzTester PRIVATE
+    -Wl,--start-group
+    ${FPRIME_LINK_LIBS_PATHS}
+    -Wl,--end-group
 )
 
 # fuzzer 메인 실행 파일
