@@ -75,6 +75,19 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
     STATIC=
 )
 
+# OSAL 구현체 소스 추가 (Generic PriorityQueue 및 DefaultPriorityQueue, Posix Mutex/Task)
+target_sources(CmdDispatcherFuzzTester PRIVATE
+    "${FPRIME_SRC_ROOT}/Os/Generic/DefaultPriorityQueue.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Generic/PriorityQueue.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Posix/Mutex.cpp"
+    "${FPRIME_SRC_ROOT}/Os/Posix/Task.cpp"
+)
+# OSAL 구현체 헤더 include 경로 추가
+target_include_directories(CmdDispatcherFuzzTester PUBLIC
+    "${FPRIME_SRC_ROOT}/Os/Generic"
+    "${FPRIME_SRC_ROOT}/Os/Posix"
+)
+
 # snprintf_format 구현 추가
 add_library(snprintf-format ${FPRIME_SRC_ROOT}/Fw/Types/snprintf_format.cpp)
 target_include_directories(snprintf-format PUBLIC ${FPRIME_INC_LIST})
