@@ -9,6 +9,8 @@ echo "=== F-Prime CmdDispatcher LibFuzzer 시작 ==="
 # CMake 기반 빌드 디렉토리 설정
 BUILD_DIR="/workspace/Efficient-Fuzzer/src/libFuzzer/build"
 
+find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/ -name FppConstantsAc.hpp -ls || echo "FppConstantsAc.hpp not found anywhere in UT build directory"
+
 # !!!!! 수정: 빌드 디렉토리 항상 새로 생성 !!!!!
 echo "=== 기존 빌드 디렉토리 삭제 ==="
 rm -rf "$BUILD_DIR"
