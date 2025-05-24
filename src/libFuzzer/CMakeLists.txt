@@ -62,6 +62,34 @@ set(FPRIME_LINK_LIBS_PATHS
     ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a
 )
 
+
+
+# Custom compiled F' sources to resolve specific linking issues
+
+# For Fw::stringFormat
+add_library(custom_snprintf_format STATIC
+    ${FPRIME_SRC_ROOT}/Fw/Types/snprintf_format.cpp
+)
+target_include_directories(custom_snprintf_format PUBLIC ${FPRIME_INC_LIST})
+# snprintf_format.cpp는 일반적으로 특별한 컴파일 정의가 많이 필요하지 않지만,
+# F' 전역 설정을 따르기 위해 BUILD_UT 등을 고려할 수 있습니다.
+target_compile_definitions(custom_snprintf_format PRIVATE BUILD_UT)
+
+
+# For Os::QueueInterface::getDelegate (assuming DefaultPriorityQueue provides it)
+add_library(custom_DefaultPriorityQueue STATIC
+    ${FPRIME_SRC_ROOT}/Os/Generic/DefaultPriorityQueue.cpp
+)
+target_include_directories(custom_DefaultPriorityQueue PUBLIC ${FPRIME_INC_LIST})
+target_compile_definitions(custom_DefaultPriorityQueue PRIVATE
+    BUILD_UT
+    PROTECTED=public
+    PRIVATE=public
+    STATIC=
+)
+
+
+
 # CmdDispatcher 하네스 소스 파일 정의
 file(GLOB FPRIME_CMD_DISPATCHER_HARNESS_SRCS
     "${FPRIME_UT_ROOT}/F-Prime/Svc/CmdDispatcher/*.cpp"
@@ -108,13 +136,15 @@ target_include_directories(cmd_fuzzer PUBLIC
 )
 target_link_libraries(cmd_fuzzer PRIVATE
     -Wl,--start-group
-    # 주요 라이브러리 우선 명시
-    ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a
+    # Custom compiled libraries first
+    custom_snprintf_format
+    custom_DefaultPriorityQueue
+
+    # 주요 라이브러리 우선 명시 (이전 시도에서 남은 부분, 필요에 따라 유지 또는 제거)
+    ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a # custom_snprintf_format으로 대체되었으므로 중복 가능성 있음
     ${FPRIME_UT_LIB_DIR}/libOs_Mutex_Posix.a
     ${FPRIME_UT_LIB_DIR}/libOs_Task_Posix.a
-    ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a # 해당 파일이 있다면 추가 (정확한 파일명 확인 필요)
-    # 또는 Os::QueueInterface::getDelegate를 제공하는 라이브러리
-    # 예: ${FPRIME_UT_LIB_DIR}/libOs_Posix_Shared.a 또는 ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a 등
+    ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a # custom_DefaultPriorityQueue와 연관될 수 있음
 
     CmdDispatcherFuzzTester # 사용자 정의 테스터 라이브러리
     ${FPRIME_LINK_LIBS_PATHS} # 전체 F' 라이브러리 목록
