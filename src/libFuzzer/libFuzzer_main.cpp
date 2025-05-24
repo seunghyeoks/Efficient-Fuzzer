@@ -58,28 +58,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         return 0; 
     }
 
-    // F' 프레임워크에서 사용하는 명령어 버퍼(Fw::ComBuffer)를 생성합니다.
-    Fw::ComBuffer buff;
-    // 버퍼의 시작 부분에 이 데이터가 명령어 패킷임을 나타내는 디스크립터를 직렬화합니다.
-    buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-    // 실제 퍼저 입력 데이터를 직렬화할 수 있는 최대 크기를 계산합니다.
-    const size_t cap = buff.getBuffCapacity() - sizeof(FwPacketDescriptorType);
-    // 퍼저 입력(Data)을 버퍼 용량에 맞게 잘라서(len) 직렬화합니다.
-    const size_t len = (Size > cap ? cap : Size);
-    buff.serialize(Data, len);
-
-    // 매 입력마다 Fuzz 테스터의 내부 상태를 초기화합니다.
-    // 이를 통해 각 퍼즈 입력이 독립적으로 테스트되도록 보장합니다.
-    tester.resetState();
-
-
-
-    // 준비된 명령어 버퍼(buff)를 Fuzz 테스터를 통해 CommandDispatcherImpl로 전송합니다.
-    // 0은 포트 번호, context는 명령어 컨텍스트 (여기서는 0)입니다.
-    tester.public_invoke_to_seqCmdBuff(0, buff, 0); 
-
-    // Fuzz 테스터를 통해 CommandDispatcherImpl의 메시지 큐를 처리하도록 합니다.
-    // 이 과정에서 실제로 명령어가 디스패치되고 실행됩니다.
+    // 첫 바이트를 사용해 전략 선택 (선택 사항)
+    FuzzStrategy strategy = Size > 0 ? 
+        static_cast<FuzzStrategy>(Data[0] % NUM_STRATEGIES) : 
+        STRATEGY_DEFAULT;
+    
+    // 퍼저 입력으로부터 명령어 버퍼 생성
+    Fw::ComBuffer buff = tester.createFuzzedCommandBuffer(Data, Size);
+    // 또는: Fw::ComBuffer buff = tester.createFuzzedCommandBufferWithStrategy(Data, Size, strategy);
+    
+    // 생성된 명령어 버퍼 전송
+    tester.public_invoke_to_seqCmdBuff(0, buff, 0);
     tester.public_doDispatchLoop();
 
     // Fuzz 테스터로부터 명령어 처리 결과를 가져옵니다.
@@ -97,15 +86,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         std::ofstream outfile(error_filename, std::ios::binary);
         if (outfile.is_open()) {
             // 원본 입력 데이터 저장
-            outfile.write(reinterpret_cast<const char*>(Data), len);
+            outfile.write(reinterpret_cast<const char*>(Data), Size);
             // 추가적인 에러 정보도 파일에 기록 가능 (예: 텍스트 형태로)
             outfile << "\n--- Error Info ---\n";
             outfile << "Input Size (Original): " << Size << "\n";
-            outfile << "Input Size (Clamped): " << len << "\n";
+            outfile << "Input Size (Clamped): " << Size << "\n";
             outfile << "Last Opcode: 0x" << std::hex << result.lastOpcode << std::dec << "\n";
             outfile << "Last Response: " << result.lastResponse.e << "\n";
             outfile.close();
         }
+
+        tester.resetState();
 
         // Fuzzer가 에러를 감지하도록 하기 위해, 필요시 여기서 abort() 또는 FW_ASSERT(false) 호출
         // 예를 들어, 특정 논리적 에러도 크래시처럼 취급하고 싶다면 FW_ASSERT(false)를 사용할 수 있습니다.

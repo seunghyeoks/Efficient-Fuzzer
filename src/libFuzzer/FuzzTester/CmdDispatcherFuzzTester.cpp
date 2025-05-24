@@ -48,27 +48,7 @@ namespace Svc {
         this->m_impl.set_pingOut_OutputPort(0, this->get_from_pingOut(0));
     }
 
-    // 퍼저 입력을 전달하는 메소드
-    CmdDispatcherFuzzTester::FuzzResult CmdDispatcherFuzzTester::dispatchFuzzedCommand(
-        const Fw::ComBuffer& buff, 
-        U32 context
-    ) {
-        // 상태 초기화
-        this->resetState();
-        
-        // 명령어 버퍼 전송
-        this->invoke_to_seqCmdBuff(0, const_cast<Fw::ComBuffer&>(buff), context);
-        
-        // 메시지 큐를 처리하여 명령 디스패치 수행
-        this->m_impl.doDispatch();
-        // 추가 디스패치가 남아 있을 수 있으므로 반복 처리
-        while (this->m_impl.doDispatch() == Fw::QueuedComponentBase::MSG_DISPATCH_OK) {
-            ;
-        }
 
-        // 결과 반환
-        return m_fuzzResult;
-    }
 
     // 상태 초기화
     void CmdDispatcherFuzzTester::resetState() {
@@ -200,6 +180,53 @@ namespace Svc {
         // 만약 dispatch_attempts가 MAX_DISPATCH_COUNT에 도달했다면,
         // 여전히 처리할 메시지가 남아있을 수 있으나 강제 종료한 것입니다.
         // 그렇지 않다면, 큐가 비었거나 (BLOCKING 상태 진입 전) MSG_DISPATCH_OK 외의 상태가 반환된 것입니다.
+    }
+
+    Fw::ComBuffer CmdDispatcherFuzzTester::createFuzzedCommandBuffer(
+        const uint8_t* data, 
+        size_t size
+    ) {
+        Fw::ComBuffer buff;
+        
+        // 항상 명령어 패킷 타입은 유지 (기본 구조)
+        buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+        
+        // 데이터가 너무 작으면 기본값 사용
+        if (size < 2) {
+            // 기본 opcode 사용
+            buff.serialize(static_cast<FwOpcodeType>(0x1234));
+            return buff;
+        }
+        
+        // 첫 2바이트로 opcode 생성
+        FwOpcodeType opcode = static_cast<FwOpcodeType>(data[0]) | 
+                             (static_cast<FwOpcodeType>(data[1]) << 8);
+        buff.serialize(opcode);
+        
+        // 나머지 데이터는 명령어 인자로 사용
+        const size_t argSize = std::min(size - 2, buff.getBuffCapacity() - buff.getBuffLength());
+        if (argSize > 0) {
+            buff.serialize(&data[2], argSize);
+        }
+        
+        return buff;
+    }
+
+    Fw::ComBuffer CmdDispatcherFuzzTester::createFuzzedCommandBufferWithStrategy(
+        const uint8_t* data, 
+        size_t size,
+        FuzzStrategy strategy
+    ) {
+        // 여러 전략 구현: 유효한 명령어, 잘못된 opcode, 잘못된 형식 등
+        switch(strategy) {
+            case STRATEGY_VALID:
+                // 유효한 명령어 생성
+                break;
+            case STRATEGY_INVALID_OPCODE:
+                // 잘못된 opcode 생성
+                break;
+            // ...
+        }
     }
 
 } // namespace Svc
