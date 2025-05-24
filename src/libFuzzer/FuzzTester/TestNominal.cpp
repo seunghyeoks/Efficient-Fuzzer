@@ -3,7 +3,6 @@
 #include <Fw/Com/ComBuffer.hpp>
 #include <Fw/Com/ComPacket.hpp>
 #include <Fw/Types/Assert.hpp>
-#include <Os/Log.hpp> // Os::Log 사용을 위해 추가
 #include <cstdio> // fprintf 사용을 위해 추가
 
 // Basic console logger
