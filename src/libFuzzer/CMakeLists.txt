@@ -77,11 +77,14 @@ target_compile_definitions(custom_snprintf_format PRIVATE BUILD_UT)
 
 
 # For Os::QueueInterface::getDelegate (assuming DefaultPriorityQueue provides it)
-add_library(custom_DefaultPriorityQueue STATIC
+# and other Os delegate functions for Posix
+add_library(custom_OsImplementations STATIC
     ${FPRIME_SRC_ROOT}/Os/Generic/DefaultPriorityQueue.cpp
+    ${FPRIME_SRC_ROOT}/Os/Posix/DefaultMutex.cpp # For Mutex and ConditionVariable delegates
+    ${FPRIME_SRC_ROOT}/Os/Posix/DefaultTask.cpp  # For Task delegate
 )
-target_include_directories(custom_DefaultPriorityQueue PUBLIC ${FPRIME_INC_LIST})
-target_compile_definitions(custom_DefaultPriorityQueue PRIVATE
+target_include_directories(custom_OsImplementations PUBLIC ${FPRIME_INC_LIST})
+target_compile_definitions(custom_OsImplementations PRIVATE
     BUILD_UT
     PROTECTED=public
     PRIVATE=public
@@ -138,13 +141,13 @@ target_link_libraries(cmd_fuzzer PRIVATE
     -Wl,--start-group
     # Custom compiled libraries first
     custom_snprintf_format
-    custom_DefaultPriorityQueue
+    custom_OsImplementations # 이전 custom_DefaultPriorityQueue 에서 이름 변경
 
     # 주요 라이브러리 우선 명시 (이전 시도에서 남은 부분, 필요에 따라 유지 또는 제거)
     ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a # custom_snprintf_format으로 대체되었으므로 중복 가능성 있음
     ${FPRIME_UT_LIB_DIR}/libOs_Mutex_Posix.a
     ${FPRIME_UT_LIB_DIR}/libOs_Task_Posix.a
-    ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a # custom_DefaultPriorityQueue와 연관될 수 있음
+    # ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a # custom_OsImplementations에 포함됨
 
     CmdDispatcherFuzzTester # 사용자 정의 테스터 라이브러리
     ${FPRIME_LINK_LIBS_PATHS} # 전체 F' 라이브러리 목록
