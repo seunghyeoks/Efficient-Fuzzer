@@ -49,7 +49,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // (예: NoOp, Health Ping 등)
     impl.regCommands();
 
-/* // 다음 단계에서 주석 해제할 로직들
+
     // Fuzzer로부터 받은 입력 데이터(Size)가 너무 작으면 (1바이트 미만) 처리를 건너뜁니다.
     if (Size < 1) {
         return 0; 
@@ -68,6 +68,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // 매 입력마다 Fuzz 테스터의 내부 상태를 초기화합니다.
     // 이를 통해 각 퍼즈 입력이 독립적으로 테스트되도록 보장합니다.
     tester.resetState();
+
+/*
 
     // 준비된 명령어 버퍼(buff)를 Fuzz 테스터를 통해 CommandDispatcherImpl로 전송합니다.
     // 0은 포트 번호, context는 명령어 컨텍스트 (여기서는 0)입니다.
