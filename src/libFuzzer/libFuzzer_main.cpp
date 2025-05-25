@@ -47,7 +47,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     
     // 2. 퍼저 입력으로부터 바로 명령어 버퍼 생성
     Fw::ComBuffer buff = tester.createFuzzedCommandBuffer(Data, Size);
-    Fw::ComBuffer buff = tester.createFuzzedCommandBuffer(Data, Size);
     
     
     // 생성된 명령어 버퍼 전송
