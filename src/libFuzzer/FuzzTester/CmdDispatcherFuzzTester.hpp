@@ -74,12 +74,19 @@ namespace Svc {
             );
         
         protected:
-            // TesterBase 핸들러 오버라이드
-            void from_seqCmdStatus_handler(
-                FwIndexType portNum,
+            // compCmdSend 핸들러 오버라이드
+            void from_compCmdSend_handler(
+                NATIVE_INT_TYPE portNum,
                 FwOpcodeType opCode,
                 U32 cmdSeq,
-                const Fw::CmdResponse& response
+                Fw::CmdArgBuffer &args
+            ) override;
+
+            void from_seqCmdStatus_handler(
+                NATIVE_INT_TYPE portNum,
+                FwOpcodeType opCode,
+                U32 cmdSeq,
+                const Fw::CmdResponse &response
             ) override;
             
             // 텔레메트리 핸들러 오버라이드
@@ -122,6 +129,17 @@ namespace Svc {
             
             // 퍼징 결과 저장
             FuzzResult m_fuzzResult;
+
+            // 명령 송신 관련 상태
+            bool m_cmdSendRcvd = false;
+            FwOpcodeType m_cmdSendOpCode = 0;
+            U32 m_cmdSendCmdSeq = 0;
+            Fw::CmdArgBuffer m_cmdSendArgs;
+            // 명령 응답 관련 상태
+            bool m_seqStatusRcvd = false;
+            FwOpcodeType m_seqStatusOpCode = 0;
+            U32 m_seqStatusCmdSeq = 0;
+            Fw::CmdResponse m_seqStatusCmdResponse = Fw::CmdResponse::OK;
         };
 
 } // namespace Svc
