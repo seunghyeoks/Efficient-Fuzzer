@@ -189,32 +189,24 @@ namespace Svc {
         Fw::ComBuffer buff;
         buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
 
-        // 너무 작을 경우 기본값 사용
         if (size < 8) {
             buff.serialize(static_cast<FwOpcodeType>(0x1234));
             buff.serialize(static_cast<U32>(0x0));
             return buff;
         }
 
-        // Fuzzing 데이터에서 opcode 추출 (4바이트) 및 등록
-        if (size >= 4) {
-            FwOpcodeType opcode = static_cast<FwOpcodeType>(data[0]) |
-                                  (static_cast<FwOpcodeType>(data[1]) << 8) |
-                                  (static_cast<FwOpcodeType>(data[2]) << 16) |
-                                  (static_cast<FwOpcodeType>(data[3]) << 24);
-            this->invoke_to_compCmdReg(0, opcode);
-        }
+        FwOpcodeType opcode = static_cast<FwOpcodeType>(data[0]) |
+                              (static_cast<FwOpcodeType>(data[1]) << 8) |
+                              (static_cast<FwOpcodeType>(data[2]) << 16) |
+                              (static_cast<FwOpcodeType>(data[3]) << 24);
+        this->invoke_to_compCmdReg(0, opcode);
         buff.serialize(opcode);
 
-        // U32 인자 (4바이트)
         U32 arg = static_cast<U32>(data[4]) |
                   (static_cast<U32>(data[5]) << 8) |
                   (static_cast<U32>(data[6]) << 16) |
                   (static_cast<U32>(data[7]) << 24);
         buff.serialize(arg);
-
-        // 추가 인자도 넣고 싶으면, 남은 바이트를 더 serialize해도 됨(fuzzing 목적)
-        // if (size > 8) { ... }
 
         return buff;
     }
