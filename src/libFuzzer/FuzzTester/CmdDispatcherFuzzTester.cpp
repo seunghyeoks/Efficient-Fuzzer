@@ -18,20 +18,6 @@ namespace Svc {
     CmdDispatcherFuzzTester::~CmdDispatcherFuzzTester() {
     }
 
-    void CmdDispatcherFuzzTester::from_compCmdSend_handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, Fw::CmdArgBuffer &args) {
-        this->m_cmdSendOpCode = opCode;
-        this->m_cmdSendCmdSeq = cmdSeq;
-        this->m_cmdSendArgs = args;
-        this->m_cmdSendRcvd = true;
-    }
-
-    void CmdDispatcherFuzzTester::from_seqCmdStatus_handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, const Fw::CmdResponse &response) {
-        this->m_seqStatusRcvd = true;
-        this->m_seqStatusOpCode = opCode;
-        this->m_seqStatusCmdSeq = cmdSeq;
-        this->m_seqStatusCmdResponse = response;
-    }
-
     // 포트 연결 설정
     void CmdDispatcherFuzzTester::connectPorts() {
         // CommandDispatcherTester.cpp의 connectPorts 함수 참조
@@ -95,7 +81,6 @@ namespace Svc {
         // this->m_impl.doDispatch(); // 주석 처리 또는 public 래퍼 함수 사용
     }
 
-/*
     // TesterBase 핸들러 오버라이드 - 명령어 응답
     void CmdDispatcherFuzzTester::from_seqCmdStatus_handler(
         FwIndexType portNum,
@@ -115,7 +100,7 @@ namespace Svc {
             m_fuzzResult.hasError = true;
         }
     }
-*/
+
     // 텔레메트리 핸들러 - 명령 디스패치 카운트
     void CmdDispatcherFuzzTester::tlmInput_CommandsDispatched(
         const Fw::Time& timeTag,
@@ -225,5 +210,24 @@ namespace Svc {
 
         return buff;
     }
+
+    /*
+    Fw::ComBuffer CmdDispatcherFuzzTester::createFuzzedCommandBufferWithStrategy(
+        const uint8_t* data, 
+        size_t size,
+        FuzzStrategy strategy
+    ) {
+        // 여러 전략 구현: 유효한 명령어, 잘못된 opcode, 잘못된 형식 등
+        switch(strategy) {
+            case STRATEGY_VALID:
+                // 유효한 명령어 생성
+                break;
+            case STRATEGY_INVALID_OPCODE:
+                // 잘못된 opcode 생성
+                break;
+            // ...
+        }
+    }
+    */
 
 } // namespace Svc
