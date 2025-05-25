@@ -33,10 +33,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // (예: NoOp, Health Ping 등)
     impl.regCommands();
 
-    // ⭐⭐⭐ 여기에서 미리 opcode 등록 (예: 0~255) ⭐⭐⭐
-    for (FwOpcodeType op = 0; op < 256; ++op) {
-        tester.public_invoke_to_compCmdReg(0, op);
-    }
 
     // Fuzzer로부터 받은 입력 데이터(Size)가 너무 작으면 (1바이트 미만) 처리를 건너뜁니다.
     if (Size < 1) {
