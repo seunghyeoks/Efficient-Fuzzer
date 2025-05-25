@@ -187,32 +187,35 @@ namespace Svc {
         size_t size
     ) {
         Fw::ComBuffer buff;
-        
-        // 항상 명령어 패킷 타입은 유지 (기본 구조)
         buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-        
-        // 데이터가 너무 작으면 기본값 사용
-        if (size < 2) {
-            // 기본 opcode 사용
+
+        // 너무 작을 경우 기본값 사용
+        if (size < 8) {
             buff.serialize(static_cast<FwOpcodeType>(0x1234));
+            buff.serialize(static_cast<U32>(0x0));
             return buff;
         }
-        
-        // 첫 2바이트로 opcode 생성
-        FwOpcodeType opcode = static_cast<FwOpcodeType>(data[0]) | 
-                             (static_cast<FwOpcodeType>(data[1]) << 8);
-        buff.serialize(opcode);
-        
-        // 나머지 데이터는 명령어 인자로 사용
-        // 타입 일치시키기 위해 static_cast 사용
-        const size_t remainingSize = size - 2;
-        const size_t buffSpace = static_cast<size_t>(buff.getBuffCapacity() - buff.getBuffLength());
-        const size_t argSize = (remainingSize < buffSpace) ? remainingSize : buffSpace;
-        
-        if (argSize > 0) {
-            buff.serialize(&data[2], argSize);
+
+        // Fuzzing 데이터에서 opcode 추출 (4바이트) 및 등록
+        if (size >= 4) {
+            FwOpcodeType opcode = static_cast<FwOpcodeType>(data[0]) |
+                                  (static_cast<FwOpcodeType>(data[1]) << 8) |
+                                  (static_cast<FwOpcodeType>(data[2]) << 16) |
+                                  (static_cast<FwOpcodeType>(data[3]) << 24);
+            this->invoke_to_compCmdReg(0, opcode);
         }
-        
+        buff.serialize(opcode);
+
+        // U32 인자 (4바이트)
+        U32 arg = static_cast<U32>(data[4]) |
+                  (static_cast<U32>(data[5]) << 8) |
+                  (static_cast<U32>(data[6]) << 16) |
+                  (static_cast<U32>(data[7]) << 24);
+        buff.serialize(arg);
+
+        // 추가 인자도 넣고 싶으면, 남은 바이트를 더 serialize해도 됨(fuzzing 목적)
+        // if (size > 8) { ... }
+
         return buff;
     }
 

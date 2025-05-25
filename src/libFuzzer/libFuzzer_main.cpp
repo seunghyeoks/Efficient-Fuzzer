@@ -9,26 +9,6 @@
 #include <fstream> // 파일 출력을 위해 추가
 #include <string>  // std::string 사용을 위해 추가
 #include <sstream> // 문자열 스트림 사용을 위해 추가
-// #include <cstdio> // fprintf를 위해 추가했었으나, 이제 사용하지 않으므로 주석 처리 또는 삭제 가능
-
-// 특수한 입력 패턴을 생성하는 함수들 (현재는 LLVMFuzzerTestOneInput에서 직접 사용되지 않음)
-Fw::ComBuffer createValidCommandBuffer(FwOpcodeType opcode, U32 cmdSeq) {
-    Fw::ComBuffer buff;
-    buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-    buff.serialize(opcode);
-    buff.serialize(cmdSeq);
-    return buff;
-}
-
-Fw::ComBuffer createInvalidSizeCommandBuffer(const uint8_t* data, size_t size) {
-    Fw::ComBuffer buff;
-    buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-    size_t copySize = std::min(size, static_cast<size_t>(sizeof(FwOpcodeType)-1));
-    if (copySize > 0) {
-        buff.serialize(data, copySize);
-    }
-    return buff;
-}
 
 // libFuzzer의 메인 입력 처리 함수
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
@@ -66,6 +46,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     */ 
     
     // 2. 퍼저 입력으로부터 바로 명령어 버퍼 생성
+    Fw::ComBuffer buff = tester.createFuzzedCommandBuffer(Data, Size);
     Fw::ComBuffer buff = tester.createFuzzedCommandBuffer(Data, Size);
     
     
