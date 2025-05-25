@@ -9,6 +9,7 @@
 #include <fstream> // 파일 출력을 위해 추가
 #include <string>  // std::string 사용을 위해 추가
 #include <sstream> // 문자열 스트림 사용을 위해 추가
+#include <cstdlib>
 
 // libFuzzer의 메인 입력 처리 함수
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
@@ -48,9 +49,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     // 2. 퍼저 입력으로부터 바로 명령어 버퍼 생성
     Fw::ComBuffer buff = tester.createFuzzedCommandBuffer(Data, Size);
     
-    
+    // context 값 추출 (입력 데이터에서 8~11번째 바이트 사용, 없으면 0)
+    U32 context = 0;
+    if (Size >= 12) {
+        context = static_cast<U32>(Data[8]) |
+                  (static_cast<U32>(Data[9]) << 8) |
+                  (static_cast<U32>(Data[10]) << 16) |
+                  (static_cast<U32>(Data[11]) << 24);
+    }
+
     // 생성된 명령어 버퍼 전송
-    tester.public_invoke_to_seqCmdBuff(0, buff, 0);
+    tester.public_invoke_to_seqCmdBuff(0, buff, context);
     tester.public_doDispatchLoop();
 
     // Fuzz 테스터로부터 명령어 처리 결과를 가져옵니다.
