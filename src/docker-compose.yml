@@ -12,6 +12,20 @@ services:
     stdin_open: true
     # AFL++ 및 Boofuzz 컨테이너는 나중에 추가
 
+  aflplusplus:
+    build:
+      context: ./aflplusplus
+      dockerfile: Dockerfile.aflplusplusTH
+    container_name: fprime_aflpp
+    privileged: true
+    volumes:
+      - ../..:/workspace/local-code
+      - aflplusplus-findings:/workspace/Efficient-Fuzzer/src/aflplusplus/build/findings
+    tty: true
+    stdin_open: true
+
 volumes:
   libfuzzer-findings:
-    # 퍼저가 발견한 크래시, 타임아웃 등의 결과를 저장할 볼륨 
+    # 퍼저가 발견한 크래시, 타임아웃 등의 결과를 저장할 볼륨
+  aflplusplus-findings:
+    # AFL++ 결과 저장용 볼륨 
