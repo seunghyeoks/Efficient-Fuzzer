@@ -181,27 +181,6 @@ namespace Svc {
         // Depending on the fuzzing strategy, you might want to set m_fuzzResult.hasError = true here.
     }
 
-    void CmdDispatcherFuzzTester::public_doDispatchLoop() {
-        this->m_impl.doDispatch(); // 메시지 큐를 처리하여 명령 디스패치 수행 - 첫 호출은 루프에 통합
-        /*
-        // 추가 디스패치가 남아 있을 수 있으므로 반복 처리
-        
-        const int MAX_DISPATCH_COUNT = 5; // 예: 최대 5번 디스패치 시도
-        int dispatch_attempts = 0;
-        
-        // 메시지 큐를 처리하여 명령 디스패치 수행
-        // 제한된 횟수만큼만 doDispatch를 호출하여 무한 블로킹 방지 시도
-        while (dispatch_attempts < MAX_DISPATCH_COUNT && 
-               this->m_impl.doDispatch() == Fw::QueuedComponentBase::MSG_DISPATCH_OK) {
-            dispatch_attempts++;
-            // 루프가 돌 때마다 로그를 남기면 좋겠지만, 현재 printf가 안되므로 카운트만 합니다.
-        }
-        // 만약 dispatch_attempts가 MAX_DISPATCH_COUNT에 도달했다면,
-        // 여전히 처리할 메시지가 남아있을 수 있으나 강제 종료한 것입니다.
-        // 그렇지 않다면, 큐가 비었거나 (BLOCKING 상태 진입 전) MSG_DISPATCH_OK 외의 상태가 반환된 것입니다.
-        */
-    }
-
     Fw::ComBuffer CmdDispatcherFuzzTester::createFuzzedCommandBuffer(
         const uint8_t* data, 
         size_t size
@@ -229,6 +208,48 @@ namespace Svc {
         buff.serialize(arg);
 
         return buff;
+    }
+
+    // Fuzzer를 위한 일반화된 테스트 실행 메소드 구현: 상태 초기화, 명령 주입, 디스패치 수행 후 결과 반환
+    Svc::CmdDispatcherFuzzTester::FuzzResult CmdDispatcherFuzzTester::tryTest(
+        const uint8_t* data,
+        size_t size
+    ) {
+        // 상태 초기화
+        this->resetState();
+
+        this->m_impl.regCommands();
+
+        // 퍼징 입력으로 명령어 버퍼 생성
+        Fw::ComBuffer buff = this->createFuzzedCommandBuffer(data, size);
+        // 생성된 opcode를 다시 계산
+        FwOpcodeType opcode;
+        if (size < 8) {
+            opcode = static_cast<FwOpcodeType>(0x1234);
+        } else {
+            opcode = static_cast<FwOpcodeType>(data[0]) |
+                     (static_cast<FwOpcodeType>(data[1]) << 8) |
+                     (static_cast<FwOpcodeType>(data[2]) << 16) |
+                     (static_cast<FwOpcodeType>(data[3]) << 24);
+        }
+        // 컨텍스트 추출 (8~11 바이트 사용)
+        U32 context = 0;
+        if (size >= 12) {
+            context = static_cast<U32>(data[8]) |
+                      (static_cast<U32>(data[9]) << 8) |
+                      (static_cast<U32>(data[10]) << 16) |
+                      (static_cast<U32>(data[11]) << 24);
+        }
+        // 명령 주입 및 디스패치 수행
+        this->invoke_to_seqCmdBuff(0, buff, context);
+        this->m_impl.doDispatch();
+        // 결과 반환
+        this->clearEvents();
+        this->invoke_to_compCmdStat(0, opcode, 0, Fw::CmdResponse::OK);
+        this->m_impl.doDispatch();
+
+        // 테스트 결과 반환
+        return this->getFuzzResult();
     }
 
 } // namespace Svc

@@ -49,29 +49,19 @@ namespace Svc {
             // 핑 테스트 메소드
             void sendPing(U32 key);
 
-            // Public wrapper for invoke_to_compCmdReg
-            void public_invoke_to_compCmdReg(FwIndexType portNum, FwOpcodeType opCode) {
-                this->invoke_to_compCmdReg(portNum, opCode);
-            }
-
-            // Public wrapper for invoke_to_seqCmdBuff
-            void public_invoke_to_seqCmdBuff(FwIndexType portNum, Fw::ComBuffer &data, U32 context) {
-                this->invoke_to_seqCmdBuff(portNum, data, context);
-            }
-
             // Getter for m_fuzzResult
             const FuzzResult& getFuzzResult() const {
                 return m_fuzzResult;
             }
-
-            // Public wrapper for doDispatch loop
-            void public_doDispatchLoop();
 
             // 퍼저 입력으로부터 명령어 버퍼 생성 함수 (추가 필요)
             Fw::ComBuffer createFuzzedCommandBuffer(
                 const uint8_t* data, 
                 size_t size
             );
+
+            // Fuzzer를 위한 일반화된 테스트 실행 메소드: 상태 초기화, 명령 주입, 디스패치 수행 후 결과 반환
+            FuzzResult tryTest(const uint8_t* data, size_t size);
         
         protected:
             // compCmdSend 핸들러 오버라이드
