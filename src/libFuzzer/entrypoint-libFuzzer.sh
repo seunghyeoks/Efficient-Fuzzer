@@ -8,7 +8,6 @@ echo "=== F-Prime CmdDispatcher LibFuzzer 시작 ==="
 
 # CMake 기반 빌드 디렉토리 설정
 BUILD_DIR="/workspace/Efficient-Fuzzer/src/libFuzzer/build"
-# find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/ -name FppConstantsAc.hpp -ls || echo "FppConstantsAc.hpp not found anywhere in UT build directory"
 
 echo "=== 기존 빌드 디렉토리 삭제 및 생성 ==="
 rm -rf "$BUILD_DIR"
@@ -18,8 +17,7 @@ cd "$BUILD_DIR" # 작업 디렉토리를 빌드 디렉토리로 변경
 
 # === Seed corpus 자동 생성 ===
 echo "=== Seed corpus 자동 생성 (corpus/seed_*.bin) ==="
-mkdir -p "$BUILD_DIR/corpus"
-
+mkdir -p "$BUILD_DIR/corpus"    
 # NoOp 명령 (opcode 0, 인자 0, context 1)
 python3 -c "with open('$BUILD_DIR/corpus/seed_noop.bin','wb') as f: f.write(bytes([0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x00,0x00,0x00]))"
 # 사용자 명령 (opcode 0x50, 인자 100, context 2)
@@ -36,9 +34,8 @@ echo "=== Make 빌드 시작 (cmd_fuzzer) ==="
 # make VERBOSE=1 cmd_fuzzer # 임시 주석 처리. 상세 로그 필요시 이 라인 사용
 make cmd_fuzzer
 
-echo "=== 코퍼스 및 결과 디렉토리 생성 ($BUILD_DIR/corpus, $BUILD_DIR/findings) ==="
-# 현재 디렉토리($BUILD_DIR) 내에 corpus 및 findings 디렉토리 생성
-mkdir -p corpus
+echo "결과 디렉토리 생성 ($BUILD_DIR/findings) ==="
+# 현재 디렉토리($BUILD_DIR) 내에 findings 디렉토리 생성
 mkdir -p findings
 
 echo "=== libFuzzer 실행 시작 (./cmd_fuzzer) ==="

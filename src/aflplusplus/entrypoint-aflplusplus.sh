@@ -30,8 +30,7 @@ cmake .. -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
 echo "=== Make 빌드 시작 (cmd_fuzzer_afl) ==="
 make cmd_fuzzer_afl
 
-echo "=== 코퍼스 및 결과 디렉토리 생성 ($BUILD_DIR/corpus, $BUILD_DIR/findings) ==="
-mkdir -p corpus
+echo "=== 결과 디렉토리 생성 $BUILD_DIR/findings ==="
 mkdir -p findings
 
 echo "=== AFL++ fuzzing 시작 ==="
