@@ -10,6 +10,12 @@ echo "=== F-Prime CmdDispatcher LibFuzzer 시작 ==="
 BUILD_DIR="/workspace/Efficient-Fuzzer/src/libFuzzer/build"
 # find /workspace/Efficient-Fuzzer/src/fprime/build-fprime-automatic-native-ut/ -name FppConstantsAc.hpp -ls || echo "FppConstantsAc.hpp not found anywhere in UT build directory"
 
+echo "=== 기존 빌드 디렉토리 삭제 및 생성 ==="
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
+cd "$BUILD_DIR" # 작업 디렉토리를 빌드 디렉토리로 변경
+
+
 # === Seed corpus 자동 생성 ===
 echo "=== Seed corpus 자동 생성 (corpus/seed_*.bin) ==="
 mkdir -p "$BUILD_DIR/corpus"
@@ -19,10 +25,6 @@ python3 -c "with open('$BUILD_DIR/corpus/seed_noop.bin','wb') as f: f.write(byte
 # 사용자 명령 (opcode 0x50, 인자 100, context 2)
 python3 -c "with open('$BUILD_DIR/corpus/seed_user.bin','wb') as f: f.write(bytes([0x01,0x00,0x50,0x00,0x00,0x00,0x64,0x00,0x00,0x00,0x02,0x00,0x00,0x00]))"
 
-echo "=== 기존 빌드 디렉토리 삭제 및 생성 ==="
-rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR"
-cd "$BUILD_DIR" # 작업 디렉토리를 빌드 디렉토리로 변경
 
 echo "=== CMake 구성 시작 ==="
 # CMake 실행 시 상세 로그 출력 옵션 추가 (필요시)
