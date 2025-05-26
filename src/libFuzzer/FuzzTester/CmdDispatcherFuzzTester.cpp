@@ -244,8 +244,8 @@ namespace Svc {
         this->invoke_to_seqCmdBuff(0, buff, context);
         this->m_impl.doDispatch();
         // 결과 반환
-        this->clearEvents();
-        this->invoke_to_compCmdStat(0, opcode, 0, Fw::CmdResponse::OK);
+        
+        // this->invoke_to_compCmdStat(0, opcode, 0, Fw::CmdResponse::OK);
         this->m_impl.doDispatch();
 
         // 테스트 결과 반환
