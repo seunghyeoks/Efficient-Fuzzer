@@ -37,4 +37,4 @@ echo "=== 결과 디렉토리 생성 $BUILD_DIR/findings ==="
 mkdir -p findings
 
 echo "=== AFL++ fuzzing 시작 ==="
-afl-fuzz -i corpus -o findings -- ./cmd_fuzzer_afl @@ 
+afl-fuzz -i corpus -o findings -D -- ./cmd_fuzzer_afl @@ 
