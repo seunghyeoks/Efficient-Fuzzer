@@ -200,14 +200,16 @@ namespace Svc {
         Fw::ComBuffer buff;
         buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
 
+
+        FwOpcodeType opcode = static_cast<FwOpcodeType>(0x1234);
         if (size < 8) {
-            buff.serialize(static_cast<FwOpcodeType>(0x1234));
+            buff.serialize(opcode);
             buff.serialize(static_cast<U32>(0x0));
         } else {
-            FwOpcodeType opcode = static_cast<FwOpcodeType>(data[0]) |
-                                (static_cast<FwOpcodeType>(data[1]) << 8) |
-                                (static_cast<FwOpcodeType>(data[2]) << 16) |
-                                (static_cast<FwOpcodeType>(data[3]) << 24);
+            opcode = static_cast<FwOpcodeType>(data[0]) |
+                    (static_cast<FwOpcodeType>(data[1]) << 8) |
+                    (static_cast<FwOpcodeType>(data[2]) << 16) |
+                    (static_cast<FwOpcodeType>(data[3]) << 24);
             buff.serialize(opcode);
 
             // arg 직렬화
@@ -225,9 +227,9 @@ namespace Svc {
         }
         if (!alreadyRegistered) {
             U32 testContext = static_cast<U32>(data[8]) |
-                    (static_cast<U32>(data[9]) << 8) |
-                    (static_cast<U32>(data[10]) << 16) |
-                    (static_cast<U32>(data[11]) << 24);
+                            (static_cast<U32>(data[9]) << 8) |
+                            (static_cast<U32>(data[10]) << 16) |
+                            (static_cast<U32>(data[11]) << 24);
 
             this->invoke_to_compCmdReg(0, buff, testContext);
             this->m_impl.doDispatch();
