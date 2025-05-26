@@ -1,7 +1,7 @@
 #include <Fw/Types/Assert.hpp>
 #include <Fw/Com/ComBuffer.hpp>
 #include <Fw/Com/ComPacket.hpp>
-#include "FuzzTester/CmdDispatcherFuzzTester.hpp"
+#include "../FuzzTester/CmdDispatcherFuzzTester.hpp"
 #include <iostream>
 #include <cstring>
 #include <algorithm>
