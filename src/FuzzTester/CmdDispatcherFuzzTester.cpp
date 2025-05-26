@@ -187,46 +187,6 @@ namespace Svc {
         // Depending on the fuzzing strategy, you might want to set m_fuzzResult.hasError = true here.
     }
 
-    Fw::ComBuffer CmdDispatcherFuzzTester::createFuzzedCommandBuffer(
-        const uint8_t* data, 
-        size_t size
-    ) {
-        Fw::ComBuffer buff;
-        buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-
-        if (size < 8) {
-            buff.serialize(static_cast<FwOpcodeType>(0x1234));
-            buff.serialize(static_cast<U32>(0x0));
-            return buff;
-        }
-
-        FwOpcodeType opcode = static_cast<FwOpcodeType>(data[0]) |
-                              (static_cast<FwOpcodeType>(data[1]) << 8) |
-                              (static_cast<FwOpcodeType>(data[2]) << 16) |
-                              (static_cast<FwOpcodeType>(data[3]) << 24);
-        // 명령 주입 및 디스패치 수행
-        bool alreadyRegistered = false;
-        for (U32 slot = 0; slot < FW_NUM_ARRAY_ELEMENTS(this->m_impl.m_entryTable); slot++) {
-            if (this->m_impl.m_entryTable[slot].used &&
-                this->m_impl.m_entryTable[slot].opcode == opcode) {
-                alreadyRegistered = true;
-                break;
-            }
-        }
-        if (!alreadyRegistered) {
-            this->invoke_to_compCmdReg(0, opcode);
-        }
-        buff.serialize(opcode);
-
-        U32 arg = static_cast<U32>(data[4]) |
-                  (static_cast<U32>(data[5]) << 8) |
-                  (static_cast<U32>(data[6]) << 16) |
-                  (static_cast<U32>(data[7]) << 24);
-        buff.serialize(arg);
-
-        return buff;
-    }
-
     // Fuzzer를 위한 일반화된 테스트 실행 메소드 구현: 상태 초기화, 명령 주입, 디스패치 수행 후 결과 반환
     Svc::CmdDispatcherFuzzTester::FuzzResult CmdDispatcherFuzzTester::tryTest(
         const uint8_t* data,
@@ -237,31 +197,49 @@ namespace Svc {
 
         this->m_impl.regCommands();
 
-        // 퍼징 입력으로 명령어 버퍼 생성
-        Fw::ComBuffer buff = this->createFuzzedCommandBuffer(data, size);
-        // 생성된 opcode를 다시 계산
-        FwOpcodeType opcode;
+        Fw::ComBuffer buff;
+        buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+
         if (size < 8) {
-            opcode = static_cast<FwOpcodeType>(0x1234);
+            buff.serialize(static_cast<FwOpcodeType>(0x1234));
+            buff.serialize(static_cast<U32>(0x0));
         } else {
-            opcode = static_cast<FwOpcodeType>(data[0]) |
-                     (static_cast<FwOpcodeType>(data[1]) << 8) |
-                     (static_cast<FwOpcodeType>(data[2]) << 16) |
-                     (static_cast<FwOpcodeType>(data[3]) << 24);
-        }
-        // 컨텍스트 추출 (8~11 바이트 사용)
-        U32 context = 0;
-        if (size >= 12) {
-            context = static_cast<U32>(data[8]) |
-                      (static_cast<U32>(data[9]) << 8) |
-                      (static_cast<U32>(data[10]) << 16) |
-                      (static_cast<U32>(data[11]) << 24);
+            FwOpcodeType opcode = static_cast<FwOpcodeType>(data[0]) |
+                                (static_cast<FwOpcodeType>(data[1]) << 8) |
+                                (static_cast<FwOpcodeType>(data[2]) << 16) |
+                                (static_cast<FwOpcodeType>(data[3]) << 24);
+            buff.serialize(opcode);
+
+            // arg 직렬화
+            buff.serialize(reinterpret_cast<const U8*>(data + 8), size - 8);
+            
         }
 
-        this->m_impl.doDispatch();
-        // 결과 반환
+        bool alreadyRegistered = false;
+        for (U32 slot = 0; slot < FW_NUM_ARRAY_ELEMENTS(this->m_impl.m_entryTable); slot++) {
+            if (this->m_impl.m_entryTable[slot].used &&
+                this->m_impl.m_entryTable[slot].opcode == opcode) {
+                alreadyRegistered = true;
+                break;
+            }
+        }
+        if (!alreadyRegistered) {
+            U32 testContext = static_cast<U32>(data[8]) |
+                    (static_cast<U32>(data[9]) << 8) |
+                    (static_cast<U32>(data[10]) << 16) |
+                    (static_cast<U32>(data[11]) << 24);
+
+            this->invoke_to_compCmdReg(0, buff, testContext);
+            this->m_impl.doDispatch();
+        }
         
-        this->invoke_to_compCmdStat(0, opcode, 0, Fw::CmdResponse::OK);
+        
+        // 결과 반환
+        Fw::CmdResponse resp = Fw::CmdResponse::OK;
+        if (data[0] % 3 == 0) resp = Fw::CmdResponse::EXECUTION_ERROR;
+        else if (data[0] % 3 == 1) resp = Fw::CmdResponse::INVALID_OPCODE;
+        else if (data[0] % 3 == 2) resp = Fw::CmdResponse::VALIDATION_ERROR;
+        this->invoke_to_compCmdStat(0, opcode, this->m_cmdSendCmdSeq, resp);
         this->m_impl.doDispatch();
 
         // 테스트 결과 반환

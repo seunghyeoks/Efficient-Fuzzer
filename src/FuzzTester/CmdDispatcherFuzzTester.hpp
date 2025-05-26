@@ -58,12 +58,6 @@ namespace Svc {
                 return m_fuzzResult;
             }
 
-            // 퍼저 입력으로부터 명령어 버퍼 생성 함수 (추가 필요)
-            Fw::ComBuffer createFuzzedCommandBuffer(
-                const uint8_t* data, 
-                size_t size
-            );
-
             // Fuzzer를 위한 일반화된 테스트 실행 메소드: 상태 초기화, 명령 주입, 디스패치 수행 후 결과 반환
             FuzzResult tryTest(const uint8_t* data, size_t size);
         
