@@ -31,6 +31,9 @@ namespace Svc {
             CmdDispatcherFuzzTester();
             virtual ~CmdDispatcherFuzzTester();
             
+            // 기존 init 함수 선언 추가
+            void init(NATIVE_INT_TYPE instance = 0);
+            
             // 퍼저의 랜덤 값을 받아서 초기화에 활용할 수 있도록 변경
             void initWithFuzzParams(NATIVE_INT_TYPE queueDepth, NATIVE_INT_TYPE instance = 0);
             
