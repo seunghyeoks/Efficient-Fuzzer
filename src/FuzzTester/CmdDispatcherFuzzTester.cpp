@@ -247,7 +247,20 @@ namespace Svc {
                       (static_cast<U32>(data[11]) << 24);
         }
         // 명령 주입 및 디스패치 수행
-        this->invoke_to_seqCmdBuff(0, buff, context);
+        bool alreadyRegistered = false;
+        for (int i = 0; i < this->m_impl.getEntryTableSize(); ++i) {
+            if (this->m_impl.getEntryTable()[i].used &&
+                this->m_impl.getEntryTable()[i].opcode == opcode) {
+                alreadyRegistered = true;
+                break;
+            }
+        }
+        if (!alreadyRegistered) {
+            this->invoke_to_compCmdReg(0, opcode);
+        }
+
+
+
         this->m_impl.doDispatch();
         // 결과 반환
         
