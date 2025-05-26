@@ -20,7 +20,7 @@ namespace Svc {
 
     void CmdDispatcherFuzzTester::from_compCmdSend_handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, Fw::CmdArgBuffer &args) {
         // 명령을 받으면 바로 OK 응답 반환
-        this->invoke_to_compCmdStat(0, opCode, cmdSeq, Fw::CmdResponse::OK);
+        // this->invoke_to_compCmdStat(0, opCode, cmdSeq, Fw::CmdResponse::OK);
         // (원한다면 내부 변수 세팅도 추가)
         this->m_cmdSendOpCode = opCode;
         this->m_cmdSendCmdSeq = cmdSeq;
@@ -245,7 +245,7 @@ namespace Svc {
         this->m_impl.doDispatch();
         // 결과 반환
         
-        // this->invoke_to_compCmdStat(0, opcode, 0, Fw::CmdResponse::OK);
+        this->invoke_to_compCmdStat(0, opcode, 0, Fw::CmdResponse::OK);
         this->m_impl.doDispatch();
 
         // 테스트 결과 반환
