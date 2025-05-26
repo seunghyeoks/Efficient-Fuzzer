@@ -44,9 +44,7 @@ namespace Svc {
             // 상태 초기화
             void resetState();
             
-            // 명령어 처리기 등록
-            void registerCommands(U32 num, FwOpcodeType startOpCode = 0x100);
-            
+
             // CommandDispatcherImpl에 직접 접근
             CommandDispatcherImpl& getImpl();
             
