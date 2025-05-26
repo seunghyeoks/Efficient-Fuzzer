@@ -51,10 +51,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     NATIVE_INT_TYPE queueDepth = 10;
     NATIVE_INT_TYPE instance = 0;
     if (Size >= 2) {
-        queueDepth = 4 + (Data[0] % 32); // 1~32 범위
+        queueDepth = 4 + (Data[0] % 28); // 4~32 범위
         instance = Data[1];
-        Data += 2;
-        Size -= 2;
     }
     // Fuzzing을 위한 테스트 하네스 Svc::CmdDispatcherFuzzTester 객체를 생성합니다.
     Svc::CmdDispatcherFuzzTester tester;

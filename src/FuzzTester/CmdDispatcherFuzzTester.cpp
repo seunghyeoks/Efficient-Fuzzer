@@ -180,6 +180,16 @@ namespace Svc {
     }
 
     // Fuzzer를 위한 일반화된 테스트 실행 메소드 구현: 상태 초기화, 명령 주입, 디스패치 수행 후 결과 반환
+    /*
+    1 바이트 : module init queue depth
+    2 바이트 : module init instance
+    3 ~ 6 바이트 : opcode
+    7 ~ 10 바이트 : context
+    11 바이트 : random response code
+    12 ~ 이후 바이트 : argument serialization
+    */
+
+
     Svc::CmdDispatcherFuzzTester::FuzzResult CmdDispatcherFuzzTester::tryTest(
         const uint8_t* data,
         size_t size
