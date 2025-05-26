@@ -25,9 +25,6 @@ namespace Svc {
     }
 
     void CmdDispatcherFuzzTester::from_compCmdSend_handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, Fw::CmdArgBuffer &args) {
-        // 명령을 받으면 바로 OK 응답 반환
-        // this->invoke_to_compCmdStat(0, opCode, cmdSeq, Fw::CmdResponse::OK);
-        // (원한다면 내부 변수 세팅도 추가)
         this->m_cmdSendOpCode = opCode;
         this->m_cmdSendCmdSeq = cmdSeq;
         this->m_cmdSendArgs = args;
@@ -186,7 +183,8 @@ namespace Svc {
     3 ~ 6 바이트 : opcode
     7 ~ 10 바이트 : context
     11 바이트 : random response code
-    12 ~ 이후 바이트 : argument serialization
+    12 바이트 : scenario code
+    13 ~ 이후 바이트 : argument serialization
     */
 
 
@@ -195,60 +193,146 @@ namespace Svc {
         size_t size
     ) {
         this->resetState();
-        this->m_impl.regCommands(); // Dispatcher 내부에 기본 명령어들을 등록합니다.
+        this->m_impl.regCommands(); // 기본 명령어 등록
 
-        // Fuzzer로부터 opcode 값을 가져옵니다.
-        // 이 opcode는 CmdDispatcher에 이미 등록된 것일 수도 있고, 아닐 수도 있습니다.
-        // CmdDispatcher는 이 opcode를 기존 등록 테이블에서 찾아 실행하거나, 없다면 에러로 처리합니다.
-        FwOpcodeType opcode_from_fuzzer = (size >= 6)
-            ? (static_cast<FwOpcodeType>(data[2]) |
-               (static_cast<FwOpcodeType>(data[3]) << 8) |
-               (static_cast<FwOpcodeType>(data[4]) << 16) |
-               (static_cast<FwOpcodeType>(data[5]) << 24))
-            : 0x1234;
-        // this->invoke_to_compCmdReg(0, opcode_from_fuzzer);
-
-        // CmdDispatcher에 새로운 opcode를 동적으로 '등록'하는 부분은 주석 처리합니다.
-        // 이는 일반적인 FPrime 컴포넌트 사용 방식이 아니며, 현재 Assertion 발생의 주된 원인입니다.
-        // this->invoke_to_compCmdReg(0, opcode_from_fuzzer);
-
-        // 명령 실행을 요청합니다. ComBuffer에 opcode, 인자, 컨텍스트를 담아 전달합니다.
-        // 여기서 사용하는 opcode는 위에서 Fuzzer 입력으로부터 가져온 opcode_from_fuzzer입니다.
-        Fw::ComBuffer buff;
-        buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-        buff.serialize(opcode_from_fuzzer); // Fuzzer가 생성한 opcode를 직접 사용합니다.
-
-        // ... (기존 컨텍스트 및 인자 직렬화 로직)
-        U32 context = (size >= 10)
-            ? (static_cast<U32>(data[6]) |
-               (static_cast<U32>(data[7]) << 8) |
-               (static_cast<U32>(data[8]) << 16) |
-               (static_cast<U32>(data[9]) << 24))
-            : 0;
-
-        if (size > 11) {
-            size_t arg_len = (size - 11 > 64) ? 64 : (size - 11);
-            buff.serialize(reinterpret_cast<const U8*>(data + 11), arg_len);
+        if (size < 6) {
+            return this->getFuzzResult(); // 최소 데이터 필요
         }
-        this->invoke_to_seqCmdBuff(0, buff, context);
-        this->m_impl.doDispatch();
+        
+        // Fuzzer로부터 opcode 값을 가져옵니다
+        FwOpcodeType opcode_from_fuzzer = 
+            (static_cast<FwOpcodeType>(data[2]) |
+             (static_cast<FwOpcodeType>(data[3]) << 8) |
+             (static_cast<FwOpcodeType>(data[4]) << 16) |
+             (static_cast<FwOpcodeType>(data[5]) << 24));
+        
+        // 테스트 시나리오 선택 (데이터에 따라 다른 테스트 시나리오 실행)
+        enum TestScenario {
+            NORMAL_COMMAND = 0,
+            REGISTER_COMMAND = 1,
+            INVALID_COMMAND = 2,
+            MALFORMED_COMMAND = 3,
+            CLEAR_TRACKING = 4
+        };
+        
+        TestScenario scenario = (size > 12) ? 
+            static_cast<TestScenario>(data[12] % 5) : NORMAL_COMMAND;
+        
+        // 시나리오별 테스트 실행
+        switch (scenario) {
+            case REGISTER_COMMAND: {
+                // 명령어 등록 테스트 (20% 확률)
+                if (size > 7) {
+                    // 새로운 opcode 등록 시도
+                    FwOpcodeType reg_opcode = opcode_from_fuzzer + data[7];
+                    this->invoke_to_compCmdReg(0, reg_opcode);
+                    this->m_impl.doDispatch(); // 한 번만 호출
+                }
+                break;
+            }
+            
+            case INVALID_COMMAND: {
+                // 유효하지 않은 명령어 테스트 (20% 확률)
+                Fw::ComBuffer buff;
+                buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+                buff.serialize(opcode_from_fuzzer + 0x1000); // 미등록 opcode
+                
+                U32 context = (size >= 10) ? 
+                    (static_cast<U32>(data[8]) | (static_cast<U32>(data[9]) << 8)) : 0;
+                    
+                this->invoke_to_seqCmdBuff(0, buff, context);
+                this->m_impl.doDispatch(); // 한 번만 호출
+                break;
+            }
+            
+            case MALFORMED_COMMAND: {
+                // 잘못된 형식의 명령어 테스트 (20% 확률)
+                Fw::ComBuffer buff;
+                if (size > 7 && data[7] % 3 == 0) {
+                    // 잘못된 패킷 디스크립터
+                    buff.serialize(static_cast<FwPacketDescriptorType>(100));
+                } else {
+                    // 정상 패킷 디스크립터, 불완전한 데이터
+                    buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+                }
+                
+                U32 context = (size >= 10) ? 
+                    (static_cast<U32>(data[8]) | (static_cast<U32>(data[9]) << 8)) : 0;
+                    
+                this->invoke_to_seqCmdBuff(0, buff, context);
+                this->m_impl.doDispatch(); // 한 번만 호출
+                break;
+            }
+            
+            case CLEAR_TRACKING: {
+                // CLEAR_TRACKING 명령 테스트 (20% 확률)
+                // 먼저 일반 명령 하나 실행
+                Fw::ComBuffer buff1;
+                buff1.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+                buff1.serialize(opcode_from_fuzzer);
+                
+                if (size > 12) {
+                    size_t arg_len = (size - 12 > 64) ? 64 : (size - 12);
+                    buff1.serialize(reinterpret_cast<const U8*>(data + 12), arg_len);
+                }
+                
+                U32 context = (size >= 10) ? 
+                    (static_cast<U32>(data[8]) | (static_cast<U32>(data[9]) << 8)) : 0;
+                    
+                this->invoke_to_seqCmdBuff(0, buff1, context);
+                this->m_impl.doDispatch(); // 한 번만 호출
+                
+                // 그 다음 CLEAR_TRACKING 명령 실행
+                Fw::ComBuffer buff2;
+                buff2.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+                buff2.serialize(static_cast<FwOpcodeType>(CommandDispatcherImpl::OPCODE_CMD_CLEAR_TRACKING));
+                
+                this->invoke_to_seqCmdBuff(0, buff2, context + 1);
+                this->m_impl.doDispatch(); // 한 번만 호출
+                break;
+            }
+            
+            case NORMAL_COMMAND:
+            default: {
+                // 일반 명령 실행 (20% 확률 + 기본)
+                Fw::ComBuffer buff;
+                buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
+                buff.serialize(opcode_from_fuzzer);
 
-        // 명령 실행 결과에 대한 응답을 시뮬레이션합니다.
-        // 실제로는 CmdDispatcher 내부 로직에 따라 응답이 결정되지만,
-        // Fuzz 테스팅에서는 다양한 응답 상황을 시뮬레이션 할 수 있습니다.
-        U32 cmdSeq = this->m_cmdSendCmdSeq; // compCmdSend 핸들러에서 받은 실제 시퀀스 번호를 사용합니다.
-        Fw::CmdResponse resp = Fw::CmdResponse::OK;
-        if (size > 10) {
-            switch (data[10] % 4) {
-                case 0: resp = Fw::CmdResponse::OK; break;
-                case 1: resp = Fw::CmdResponse::EXECUTION_ERROR; break;
-                case 2: resp = Fw::CmdResponse::INVALID_OPCODE; break;
-                case 3: resp = Fw::CmdResponse::VALIDATION_ERROR; break;
+                // 명령 인자 추가
+                if (size > 12) {
+                    size_t arg_len = (size - 12 > 64) ? 64 : (size - 12);
+                    buff.serialize(reinterpret_cast<const U8*>(data + 12), arg_len);
+                }
+                
+                U32 context = (size >= 10) ?
+                    (static_cast<U32>(data[6]) |
+                    (static_cast<U32>(data[7]) << 8) |
+                    (static_cast<U32>(data[8]) << 16) |
+                    (static_cast<U32>(data[9]) << 24)) : 0;
+
+                this->invoke_to_seqCmdBuff(0, buff, context);
+                this->m_impl.doDispatch(); // 한 번만 호출
+                
+                // 응답 시뮬레이션 (기존 코드 유지)
+                if (this->m_cmdSendRcvd) {
+                    U32 cmdSeq = this->m_cmdSendCmdSeq;
+                    Fw::CmdResponse resp = Fw::CmdResponse::OK;
+                    if (size > 10) {
+                        switch (data[10] % 4) {
+                            case 0: resp = Fw::CmdResponse::OK; break;
+                            case 1: resp = Fw::CmdResponse::EXECUTION_ERROR; break;
+                            case 2: resp = Fw::CmdResponse::INVALID_OPCODE; break;
+                            case 3: resp = Fw::CmdResponse::VALIDATION_ERROR; break;
+                        }
+                    }
+                    
+                    this->invoke_to_compCmdStat(0, opcode_from_fuzzer, cmdSeq, resp);
+                    this->m_impl.doDispatch(); // 한 번만 호출
+                }
+                break;
             }
         }
-        // 응답을 보낼 때도 Fuzzer가 생성한 opcode_from_fuzzer를 사용합니다.
-        this->invoke_to_compCmdStat(0, opcode_from_fuzzer, cmdSeq, resp);
-        this->m_impl.doDispatch();
 
         return this->getFuzzResult();
     }
