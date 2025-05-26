@@ -3,7 +3,7 @@ project(FPrimeCmdDispatcherAFL)
 
 set(CMAKE_CXX_STANDARD 11)
 # 기본 빌드 플래그 (AddressSanitizer 등 비포함)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -Wall -Wextra -Wno-unused-parameter -Wno-inconsistent-missing-override")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -Wall -Wextra -Wno-unused-parameter -Wno-inconsistent-missing-override -fsanitize=address,undefined -fno-omit-frame-pointer")
 
 # fprime 경로 설정
 set(FPRIME_SRC_ROOT "${CMAKE_SOURCE_DIR}/../fprime")
@@ -117,6 +117,7 @@ target_link_libraries(cmd_fuzzer_afl PRIVATE
     CmdDispatcherFuzzTester
     ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
+    -fsanitize=address,undefined
     gcov
 )
 install(TARGETS cmd_fuzzer_afl DESTINATION bin) 
