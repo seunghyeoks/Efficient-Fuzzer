@@ -10,7 +10,7 @@
 #include <string>  // std::string 사용을 위해 추가
 #include <sstream> // 문자열 스트림 사용을 위해 추가
 #include <cstdlib>
-
+/*
 namespace {
     // Fuzzer 전용 assert 훅
     class FuzzAssertHook : public Fw::AssertHook {
@@ -33,7 +33,8 @@ namespace {
             // TODO: 필요 시 전역 플래그 설정 등 추가 로직 작성
         }
         void doAssert() override {
-            assert(true);
+            // libFuzzer가 assertion 실패를 크래시로 인식하도록 abort 호출
+           
         }
     };
     static FuzzAssertHook g_fuzzAssertHook;
@@ -41,6 +42,8 @@ namespace {
         g_fuzzAssertHook.registerHook();
     }
 } // anonymous namespace
+
+*/
 
 // libFuzzer의 메인 입력 처리 함수
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
