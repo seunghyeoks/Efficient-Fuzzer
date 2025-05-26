@@ -22,17 +22,22 @@ int main(int argc, char** argv) {
     std::vector<uint8_t> data((std::istreambuf_iterator<char>(ifs)),
                                std::istreambuf_iterator<char>());
 
-    // CommandDispatcherImpl 객체 생성 및 초기화
-    Svc::CommandDispatcherImpl impl("CmdDispImpl");
-    impl.init(10, 0);
-
+    // 입력 파일에서 queueDepth와 instance 값을 추출
+    NATIVE_INT_TYPE queueDepth = 10;
+    NATIVE_INT_TYPE instance = 0;
+    size_t offset = 0;
+    if (data.size() >= 2) {
+        queueDepth = 4 + (data[0] % 32); // 1~32 범위
+        instance = data[1];
+        offset = 2;
+    }
+    
     // FuzzTester 초기화 및 포트 연결
-    Svc::CmdDispatcherFuzzTester tester(impl);
-    tester.init();
+    Svc::CmdDispatcherFuzzTester tester;
+    tester.initWithFuzzParams(queueDepth, instance);
     tester.connectPorts();
-
-    // 데이터로 테스트 수행
-    tester.tryTest(data.data(), data.size());
+    // 데이터로 테스트 수행 (앞의 2바이트는 파라미터로 사용했으니 제외)
+    tester.tryTest(data.data() + offset, data.size() - offset);
 
     return 0;
 } 

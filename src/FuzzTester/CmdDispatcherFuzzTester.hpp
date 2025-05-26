@@ -27,11 +27,12 @@ namespace Svc {
                             lastOpcode(0), dispatchCount(0), errorCount(0), opCodeReregistered(false) {}
             };
 
-            // 생성자
-            CmdDispatcherFuzzTester(Svc::CommandDispatcherImpl& inst);
+            // 생성자: CommandDispatcherImpl을 내부에서 직접 생성하도록 변경
+            CmdDispatcherFuzzTester();
             virtual ~CmdDispatcherFuzzTester();
             
-            void init(NATIVE_INT_TYPE instance = 0);
+            // 퍼저의 랜덤 값을 받아서 초기화에 활용할 수 있도록 변경
+            void initWithFuzzParams(NATIVE_INT_TYPE queueDepth, NATIVE_INT_TYPE instance = 0);
             
             // 컴포넌트 포트 연결
             void connectPorts();
@@ -114,8 +115,8 @@ namespace Svc {
             ) override;
         
         private:
-            // 명령 디스패처 구현체
-            Svc::CommandDispatcherImpl& m_impl;
+            // 명령 디스패처 구현체를 참조에서 멤버 변수로 변경
+            Svc::CommandDispatcherImpl m_impl;
             
             // 퍼징 결과 저장
             FuzzResult m_fuzzResult;

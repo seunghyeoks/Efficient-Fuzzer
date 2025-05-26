@@ -8,14 +8,20 @@ namespace Svc {
         CommandDispatcherTesterBase::init();
     }
 
-    CmdDispatcherFuzzTester::CmdDispatcherFuzzTester(Svc::CommandDispatcherImpl& inst) :
-        CommandDispatcherTesterBase("testerbase",100),
-        m_impl(inst) {
-            this->m_fuzzResult = FuzzResult();
+    // 생성자: 내부 m_impl을 직접 생성
+    CmdDispatcherFuzzTester::CmdDispatcherFuzzTester()
+    : CommandDispatcherTesterBase("testerbase", 100), m_impl("CmdDispImpl") {
+        this->m_fuzzResult = FuzzResult();
     }
 
     // 소멸자
     CmdDispatcherFuzzTester::~CmdDispatcherFuzzTester() {
+    }
+
+    // 퍼저의 랜덤 값을 받아서 초기화에 활용
+    void CmdDispatcherFuzzTester::initWithFuzzParams(NATIVE_INT_TYPE queueDepth, NATIVE_INT_TYPE instance) {
+        CommandDispatcherTesterBase::init();
+        m_impl.init(queueDepth, instance);
     }
 
     void CmdDispatcherFuzzTester::from_compCmdSend_handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, Fw::CmdArgBuffer &args) {

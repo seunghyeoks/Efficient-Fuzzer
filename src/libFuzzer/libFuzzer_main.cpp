@@ -47,25 +47,22 @@ namespace {
 
 // libFuzzer의 메인 입력 처리 함수
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
-    // Fuzzing 대상 컴포넌트인 Svc::CommandDispatcherImpl 객체를 생성합니다.
-    // "CmdDispImpl"은 컴포넌트 인스턴스 이름입니다.
-    Svc::CommandDispatcherImpl impl("CmdDispImpl");
-    // CommandDispatcherImpl 컴포넌트를 초기화합니다.
-    // 첫 번째 인자는 명령어 큐의 깊이, 두 번째 인자는 인스턴스 ID (보통 0)입니다.
-    impl.init(10, 0); 
-
+    // queueDepth와 instance 값을 퍼저 입력에서 일부 랜덤하게 추출
+    NATIVE_INT_TYPE queueDepth = 10;
+    NATIVE_INT_TYPE instance = 0;
+    if (Size >= 2) {
+        queueDepth = 4 + (Data[0] % 32); // 1~32 범위
+        instance = Data[1];
+        Data += 2;
+        Size -= 2;
+    }
     // Fuzzing을 위한 테스트 하네스 Svc::CmdDispatcherFuzzTester 객체를 생성합니다.
-    // 이 객체는 CommandDispatcherImpl 컴포넌트와 상호작용합니다.
-    Svc::CmdDispatcherFuzzTester tester(impl);
-    // Fuzz 테스터를 초기화합니다.
-    tester.init();
+    Svc::CmdDispatcherFuzzTester tester;
+    // Fuzz 테스터를 퍼저 입력 기반 파라미터로 초기화합니다.
+    tester.initWithFuzzParams(queueDepth, instance);
     // Fuzz 테스터와 CommandDispatcherImpl 컴포넌트 간의 포트를 연결합니다.
     tester.connectPorts();
-
     // CommandDispatcherImpl 컴포넌트에 내장된 기본 명령어들을 등록합니다.
-    // (예: NoOp, Health Ping 등)
     tester.tryTest(Data, Size);
-
-
     return 0;
 }
