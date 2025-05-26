@@ -105,11 +105,11 @@ message(STATUS "Including fprime harness sources: ${FPRIME_CMD_DISPATCHER_HARNES
 
 # 하네스 라이브러리
 add_library(CmdDispatcherFuzzTester
-    FuzzTester/CmdDispatcherFuzzTester.cpp
+    ../FuzzTester/CmdDispatcherFuzzTester.cpp
     ${FPRIME_CMD_DISPATCHER_HARNESS_SRCS}
 )
 target_include_directories(CmdDispatcherFuzzTester PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../FuzzTester"
     "${FPRIME_UT_ROOT}/F-Prime/Svc/CmdDispatcher"
     ${FPRIME_INC_LIST}
 )
@@ -133,7 +133,7 @@ target_compile_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer)
 target_link_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer)
 target_include_directories(cmd_fuzzer PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/FuzzTester"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../FuzzTester"
     "${FPRIME_SRC_ROOT}/Fw/Types"
     ${FPRIME_INC_LIST}
 )
