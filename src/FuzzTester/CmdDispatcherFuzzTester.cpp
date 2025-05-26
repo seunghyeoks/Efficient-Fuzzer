@@ -195,23 +195,30 @@ namespace Svc {
         size_t size
     ) {
         this->resetState();
-        this->m_impl.regCommands();
+        this->m_impl.regCommands(); // Dispatcher 내부에 기본 명령어들을 등록합니다.
 
-        // 1. 임의의 opcode 등록
-        FwOpcodeType opcode = (size >= 6)
+        // Fuzzer로부터 opcode 값을 가져옵니다.
+        // 이 opcode는 CmdDispatcher에 이미 등록된 것일 수도 있고, 아닐 수도 있습니다.
+        // CmdDispatcher는 이 opcode를 기존 등록 테이블에서 찾아 실행하거나, 없다면 에러로 처리합니다.
+        FwOpcodeType opcode_from_fuzzer = (size >= 6)
             ? (static_cast<FwOpcodeType>(data[2]) |
                (static_cast<FwOpcodeType>(data[3]) << 8) |
                (static_cast<FwOpcodeType>(data[4]) << 16) |
                (static_cast<FwOpcodeType>(data[5]) << 24))
             : 0x1234;
-        this->invoke_to_compCmdReg(0, opcode);
+        // this->invoke_to_compCmdReg(0, opcode_from_fuzzer);
 
-        // 2. 명령 실행 요청 (ComBuffer에 opcode/인자/컨텍스트)
+        // CmdDispatcher에 새로운 opcode를 동적으로 '등록'하는 부분은 주석 처리합니다.
+        // 이는 일반적인 FPrime 컴포넌트 사용 방식이 아니며, 현재 Assertion 발생의 주된 원인입니다.
+        // this->invoke_to_compCmdReg(0, opcode_from_fuzzer);
+
+        // 명령 실행을 요청합니다. ComBuffer에 opcode, 인자, 컨텍스트를 담아 전달합니다.
+        // 여기서 사용하는 opcode는 위에서 Fuzzer 입력으로부터 가져온 opcode_from_fuzzer입니다.
         Fw::ComBuffer buff;
         buff.serialize(static_cast<FwPacketDescriptorType>(Fw::ComPacket::FW_PACKET_COMMAND));
-        buff.serialize(opcode);
-        // 남은 바이트를 인자로 직렬화 (최대 32바이트)
-        // context 값
+        buff.serialize(opcode_from_fuzzer); // Fuzzer가 생성한 opcode를 직접 사용합니다.
+
+        // ... (기존 컨텍스트 및 인자 직렬화 로직)
         U32 context = (size >= 10)
             ? (static_cast<U32>(data[6]) |
                (static_cast<U32>(data[7]) << 8) |
@@ -226,8 +233,10 @@ namespace Svc {
         this->invoke_to_seqCmdBuff(0, buff, context);
         this->m_impl.doDispatch();
 
-        // 3. 명령 실행 결과 응답 (임의의 응답코드)
-        U32 cmdSeq = this->m_cmdSendCmdSeq; // 실제 전달된 시퀀스 사용
+        // 명령 실행 결과에 대한 응답을 시뮬레이션합니다.
+        // 실제로는 CmdDispatcher 내부 로직에 따라 응답이 결정되지만,
+        // Fuzz 테스팅에서는 다양한 응답 상황을 시뮬레이션 할 수 있습니다.
+        U32 cmdSeq = this->m_cmdSendCmdSeq; // compCmdSend 핸들러에서 받은 실제 시퀀스 번호를 사용합니다.
         Fw::CmdResponse resp = Fw::CmdResponse::OK;
         if (size > 10) {
             switch (data[10] % 4) {
@@ -237,7 +246,8 @@ namespace Svc {
                 case 3: resp = Fw::CmdResponse::VALIDATION_ERROR; break;
             }
         }
-        this->invoke_to_compCmdStat(0, opcode, cmdSeq, resp);
+        // 응답을 보낼 때도 Fuzzer가 생성한 opcode_from_fuzzer를 사용합니다.
+        this->invoke_to_compCmdStat(0, opcode_from_fuzzer, cmdSeq, resp);
         this->m_impl.doDispatch();
 
         return this->getFuzzResult();
