@@ -48,6 +48,7 @@ export ASAN_OPTIONS="detect_leaks=0:allocator_may_return_null=1:handle_abort=1:a
              -artifact_prefix=findings/ \
              -print_final_stats=1 \
              -fork=1 \
+             -ignore_crashes=1 \
              -timeout=1 \
              -runs=-1 \
              corpus

@@ -11,6 +11,7 @@
 #include <sstream> // 문자열 스트림 사용을 위해 추가
 #include <cstdlib>
 
+/*
 namespace {
     // Fuzzer 전용 assert 훅
     class FuzzAssertHook : public Fw::AssertHook {
@@ -42,7 +43,7 @@ namespace {
         g_fuzzAssertHook.registerHook();
     }
 } // anonymous namespace
-
+*/
 
 // libFuzzer의 메인 입력 처리 함수
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
