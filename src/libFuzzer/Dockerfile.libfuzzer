@@ -51,6 +51,7 @@ RUN fprime-util generate --ut && fprime-util build --ut
 
 
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime
+
 RUN fprime-util generate && fprime-util build
 RUN git submodule update --init --recursive # Moved earlier
 
@@ -58,7 +59,7 @@ RUN git submodule update --init --recursive # Moved earlier
 WORKDIR /workspace/Efficient-Fuzzer
 
 # libFuzzer 진입점 스크립트 복사 (COPY 명령어 대신 클론된 저장소에서 복사)
-RUN cp /workspace/Efficient-Fuzzer/src/libFuzzer/entrypoint-libFuzzerTH.sh /usr/local/bin/entrypoint.sh
+RUN cp /workspace/Efficient-Fuzzer/src/libFuzzer/entrypoint-libFuzzer.sh /usr/local/bin/entrypoint.sh
 
 # 줄 끝 문자 변환
 RUN dos2unix /usr/local/bin/entrypoint.sh

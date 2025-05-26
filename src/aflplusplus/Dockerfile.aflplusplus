@@ -57,7 +57,7 @@ RUN git submodule update --init --recursive
 WORKDIR /workspace/Efficient-Fuzzer
 
 # AFL++ 진입점 스크립트 복사
-RUN cp /workspace/Efficient-Fuzzer/src/aflplusplus/entrypoint-aflplusplusTH.sh /usr/local/bin/entrypoint.sh
+RUN cp /workspace/Efficient-Fuzzer/src/aflplusplus/entrypoint-aflplusplus.sh /usr/local/bin/entrypoint.sh
 
 # 줄 끝 문자 변환 및 실행 권한 부여
 RUN dos2unix /usr/local/bin/entrypoint.sh
