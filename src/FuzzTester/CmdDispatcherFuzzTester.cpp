@@ -204,7 +204,18 @@ namespace Svc {
                               (static_cast<FwOpcodeType>(data[1]) << 8) |
                               (static_cast<FwOpcodeType>(data[2]) << 16) |
                               (static_cast<FwOpcodeType>(data[3]) << 24);
-        this->invoke_to_compCmdReg(0, opcode);
+        // 명령 주입 및 디스패치 수행
+        bool alreadyRegistered = false;
+        for (U32 slot = 0; slot < FW_NUM_ARRAY_ELEMENTS(this->m_impl.m_entryTable); slot++) {
+            if (this->m_impl.m_entryTable[slot].used &&
+                this->m_impl.m_entryTable[slot].opcode == opcode) {
+                alreadyRegistered = true;
+                break;
+            }
+        }
+        if (!alreadyRegistered) {
+            this->invoke_to_compCmdReg(0, opcode);
+        }
         buff.serialize(opcode);
 
         U32 arg = static_cast<U32>(data[4]) |
@@ -246,20 +257,6 @@ namespace Svc {
                       (static_cast<U32>(data[10]) << 16) |
                       (static_cast<U32>(data[11]) << 24);
         }
-        // 명령 주입 및 디스패치 수행
-        bool alreadyRegistered = false;
-        for (U32 slot = 0; slot < FW_NUM_ARRAY_ELEMENTS(this->m_impl.m_entryTable); slot++) {
-            if (this->m_impl.m_entryTable[slot].used &&
-                this->m_impl.m_entryTable[slot].opcode == opcode) {
-                alreadyRegistered = true;
-                break;
-            }
-        }
-        if (!alreadyRegistered) {
-            this->invoke_to_compCmdReg(0, opcode);
-        }
-
-
 
         this->m_impl.doDispatch();
         // 결과 반환
