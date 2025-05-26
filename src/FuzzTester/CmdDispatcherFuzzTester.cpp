@@ -248,9 +248,9 @@ namespace Svc {
         }
         // 명령 주입 및 디스패치 수행
         bool alreadyRegistered = false;
-        for (int i = 0; i < this->m_impl.getEntryTableSize(); ++i) {
-            if (this->m_impl.getEntryTable()[i].used &&
-                this->m_impl.getEntryTable()[i].opcode == opcode) {
+        for (U32 slot = 0; slot < FW_NUM_ARRAY_ELEMENTS(this->m_impl.m_entryTable); slot++) {
+            if (this->m_impl.m_entryTable[slot].used &&
+                this->m_impl.m_entryTable[slot].opcode == opcode) {
                 alreadyRegistered = true;
                 break;
             }
