@@ -24,9 +24,9 @@ int main(int argc, char** argv) {
 
     NATIVE_INT_TYPE queueDepth = 10;
     NATIVE_INT_TYPE instance = 0;
-    if (Size >= 2) {
-        queueDepth = 4 + (Data[0] % 28); // 4~32 범위
-        instance = Data[1];
+    if (data.size() >= 2) {
+        queueDepth = 4 + (data[0] % 28); // 4~32 범위
+        instance = data[1];
     }
     // Fuzzing을 위한 테스트 하네스 Svc::CmdDispatcherFuzzTester 객체를 생성합니다.
     Svc::CmdDispatcherFuzzTester tester;
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     // Fuzz 테스터와 CommandDispatcherImpl 컴포넌트 간의 포트를 연결합니다.
     tester.connectPorts();
     // CommandDispatcherImpl 컴포넌트에 내장된 기본 명령어들을 등록합니다.
-    tester.tryTest(Data, Size);
+    tester.tryTest(data.data(), data.size());
 
     return 0;
 } 
