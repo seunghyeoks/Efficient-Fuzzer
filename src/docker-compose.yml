@@ -1,9 +1,20 @@
 services:
-  gramatron:
+  libfuzzer:
     build:
-      context: ./gramatron
-      dockerfile: Dockerfile.gramatron
-    container_name: fprime_gramatron
+      context: ./libFuzzer
+      dockerfile: Dockerfile.libfuzzer
+    container_name: fprime_libfuzz
+    privileged: true
+    volumes:
+      - ../..:/workspace/local-code
+    tty: true
+    stdin_open: true
+
+  aflplusplus:
+    build:
+      context: ./aflplusplus
+      dockerfile: Dockerfile.aflplusplus
+    container_name: fprime_aflpp
     privileged: true
     volumes:
       - ../..:/workspace/local-code
