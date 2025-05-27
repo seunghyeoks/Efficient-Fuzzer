@@ -107,6 +107,7 @@ target_include_directories(gramatron_main PUBLIC
     ${FPRIME_INC_LIST}
 )
 target_link_libraries(gramatron_main PRIVATE
+    -Wl,--start-group
     custom_snprintf_format
     custom_OsImplementations
     ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a
@@ -115,6 +116,7 @@ target_link_libraries(gramatron_main PRIVATE
     CmdDispatcherFuzzTester
     ${FPRIME_LINK_LIBS_PATHS}
     -fsanitize=address,undefined
+    -Wl,--end-group
     gcov
 )
 install(TARGETS gramatron_main DESTINATION bin) 
