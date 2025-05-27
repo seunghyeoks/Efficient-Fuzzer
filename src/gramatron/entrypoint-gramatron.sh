@@ -27,6 +27,6 @@ mkdir -p findings
 
 echo "=== Gramatron fuzzing 시작 ==="
 # Gramatron 실행 예시 (grammar/automaton 파일 경로는 실제 환경에 맞게 수정 필요)
-GRAMMAR_AUTOMATON="/workspace/Efficient-Fuzzer/src/gramatron/grammar_cmd_dispatcher_automata.json"
-GRAMATRON_BIN="/workspace/Efficient-Fuzzer/src/gramatron/run_campaign.sh"
-$GRAMATRON_BIN $GRAMMAR_AUTOMATON $BUILD_DIR/findings "$BUILD_DIR/gramatron_main @@" 
+GRAMMAR_AUTOMATON="/workspace/Gramatron/grammars/example_automaton.json"
+GRAMATRON_BIN="/workspace/Gramatron/src/gramfuzz-mutator/run_campaign.sh"
+$GRAMATRON_BIN $GRAMMAR_AUTOMATON $BUILD_DIR/findings "$BUILD_DIR/gramatron_main @@"
