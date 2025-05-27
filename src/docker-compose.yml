@@ -20,3 +20,14 @@ services:
       - ../..:/workspace/local-code
     tty: true
     stdin_open: true
+
+  gramatron:
+    build:
+      context: ./gramatron
+      dockerfile: Dockerfile.gramatron
+    container_name: fprime_gramatron
+    privileged: true
+    volumes:
+      - ../..:/workspace/local-code
+    tty: true
+    stdin_open: true
