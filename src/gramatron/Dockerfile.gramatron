@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 기본 시스템 패키지 설치
+# 시스템 패키지 및 빌드 도구 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     cmake \
@@ -19,7 +19,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     curl \
     dos2unix \
-    afl++ \
+    wget \
+    autoconf \
+    libtool \
+    pkg-config \
   && rm -rf /var/lib/apt/lists/*
 
 # fprime 빌드 도구 설치
@@ -53,15 +56,28 @@ WORKDIR /workspace/Efficient-Fuzzer/src/fprime
 RUN fprime-util generate && fprime-util build
 RUN git submodule update --init --recursive
 
+# Gramatron 설치 (json-c 특정 커밋)
+WORKDIR /workspace
+RUN git clone https://github.com/HexHive/Gramatron.git
+WORKDIR /workspace/Gramatron
+RUN git clone https://github.com/json-c/json-c.git && \
+    cd json-c && \
+    git reset --hard af8dd4a307e7b837f9fa2959549548ace4afe08b && \
+    sh autogen.sh && ./configure && make && make install
+
+# Gramatron 빌드
+WORKDIR /workspace/Gramatron/src
+RUN ./setup.sh
+
 # 작업 디렉토리 다시 설정
 WORKDIR /workspace/Efficient-Fuzzer
 
-# AFL++ 진입점 스크립트 복사
-RUN cp /workspace/Efficient-Fuzzer/src/aflplusplus/entrypoint-aflplusplus.sh /usr/local/bin/entrypoint.sh
+# Gramatron 진입점 스크립트 복사
+RUN cp /workspace/Efficient-Fuzzer/src/gramatron/entrypoint-gramatron.sh /usr/local/bin/entrypoint.sh
 
 # 줄 끝 문자 변환 및 실행 권한 부여
 RUN dos2unix /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# 컨테이너 실행 시 AFL++ 컴파일 및 실행
+# 컨테이너 실행 시 Gramatron 실행
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"] 

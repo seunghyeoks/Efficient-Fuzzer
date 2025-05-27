@@ -98,17 +98,15 @@ target_include_directories(CmdDispatcherFuzzTester PUBLIC
 )
 target_compile_definitions(CmdDispatcherFuzzTester PRIVATE BUILD_UT PROTECTED=public PRIVATE=public STATIC=)
 
-# AFL++ 메인 실행 파일
-add_executable(cmd_fuzzer_afl afl_main.cpp)
-target_include_directories(cmd_fuzzer_afl PUBLIC
+# Gramatron 메인 실행 파일
+add_executable(gramatron_main gramatron_main.cpp)
+target_include_directories(gramatron_main PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../FuzzTester"
     "${FPRIME_SRC_ROOT}/Fw/Types"
     ${FPRIME_INC_LIST}
 )
-# 링커 옵션 없이 AFL++ 링커 사용 (컴파일러가 지정됨)
-target_link_libraries(cmd_fuzzer_afl PRIVATE
-    -Wl,--start-group
+target_link_libraries(gramatron_main PRIVATE
     custom_snprintf_format
     custom_OsImplementations
     ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a
@@ -116,8 +114,7 @@ target_link_libraries(cmd_fuzzer_afl PRIVATE
     ${FPRIME_UT_LIB_DIR}/libOs_Task_Posix.a
     CmdDispatcherFuzzTester
     ${FPRIME_LINK_LIBS_PATHS}
-    -Wl,--end-group
     -fsanitize=address,undefined
     gcov
 )
-install(TARGETS cmd_fuzzer_afl DESTINATION bin) 
+install(TARGETS gramatron_main DESTINATION bin) 
