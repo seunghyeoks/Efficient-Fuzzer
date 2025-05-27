@@ -62,7 +62,6 @@ RUN git clone https://github.com/HexHive/Gramatron.git
 WORKDIR /workspace/Gramatron
 RUN git clone https://github.com/json-c/json-c.git && \
     cd json-c && \
-    git reset --hard af8dd4a307e7b837f9fa2959549548ace4afe08b && \
     sh autogen.sh && ./configure && make && make install
 
 # Gramatron 빌드
