@@ -1,0 +1,13 @@
+FROM fprime_base:latest
+
+WORKDIR /workspace/Efficient-Fuzzer
+
+# libFuzzer 진입점 스크립트 복사 (COPY 명령어 대신 클론된 저장소에서 복사)
+RUN cp /workspace/Efficient-Fuzzer/src/libFuzzer/entrypoint-libFuzzer.sh /usr/local/bin/entrypoint.sh
+
+# 줄 끝 문자 변환
+RUN dos2unix /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# 컨테이너 실행 시 libFuzzer 컴파일 및 실행
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

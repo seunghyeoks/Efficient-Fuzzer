@@ -1,4 +1,4 @@
-# Fuzz Testing을 통한 위성 SW 분석
+# 위성 SW를 위한 효율적인 Fuzzer 개발
 * Fuzz Testing을 사용하여 오픈소스 위성 SW를 분석하고, 이에 따른 결함을 찾아냄과 동시에 Fuzz Testing의 유효성을 입증한다.
 * 현재 오픈소스 위성 SW에 퍼즈 테스팅을 연구한 사례가 극히 적다. 따라서, 이에 따른 연구 수행하고 결과를 공유해 오픈소스 SW와 Fuzz Testing 기법에 기여를 하고자 한다.
 
@@ -9,6 +9,17 @@
 * 충남대학교 컴퓨터융합학부 이정윤 201902733
 * 충남대학교 인공지능학과 조민기 202002699
 
+## ⚙️ Build & Test
+* base docker image build
+``` sh
+cd src; 
+docker build -f Dockerfile.fprime_base -t fprime_base:latest . ;
+```
+* each fuzzer build
+``` sh
+docker-compose build --no-cache
+docker-compose up
+```
 
 
 ## 🗓️ 주차별 활동

@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package Svc;
+
+// 필수: Fw::CmdResponse에 맞춘 응답 enum
+enum CmdResponseEnum {
+  OK = 0;
+  VALIDATION_ERROR = 1;
+  FORMAT_ERROR = 2;
+  INVALID_OPCODE = 3;
+  BUSY = 4;
+  EXECUTION_ERROR = 5;
+  TIMEOUT = 6;
+  REROUTED = 7;
+  BAD_LENGTH = 8;
+  TYPE_MISMATCH = 9;
+}
+
+// 필수: 패킷 타입 (커맨드 입력은 FW_PACKET_COMMAND만 허용)
+enum PacketDescriptorType {
+  FW_PACKET_COMMAND = 0;
+  FW_PACKET_TELEM = 1;
+  FW_PACKET_FILE = 2;
+  FW_PACKET_LOG = 3;
+  FW_PACKET_FATAL = 4;
+  FW_PACKET_UNKNOWN = 99;
+}
+
+// 필수: 커맨드 인자 (직렬화된 바이너리)
+message CommandArguments {
+  bytes arg_data = 1; // 필수
+}
+
+// 필수: 커맨드 패킷 (desc_type은 FW_PACKET_COMMAND만 허용)
+message FuzzedCmdPacket {
+  PacketDescriptorType desc_type = 1; // 필수, FW_PACKET_COMMAND만 허용
+  uint32 opcode = 2;                  // 필수, 0~3(내장), 4~(등록 필요)
+  CommandArguments arguments = 3;     // 필수
+}
+
+// 필수: seqCmdBuff 포트 입력
+message CommandBufferInput {
+  FuzzedCmdPacket packet_content = 1; // 필수
+  uint32 context = 2;                 // 필수
+  optional bool simulate_serialization_failure = 3; // 옵션
+  optional bytes raw_buffer_override = 4; // 옵션
+}
+
+// 필수: 커맨드 등록 (opcode는 4 이상만 등록 가능)
+message CommandRegistrationInput {
+  uint32 opcode_to_register = 1; // 필수, 4 이상
+}
+
+// 필수: 내장 커맨드 실행 시나리오
+message InternalCommandScenario {
+  enum CommandType {
+    NO_OP = 0;
+    NO_OP_STRING = 1;
+    TEST_CMD_1 = 2;
+    CLEAR_TRACKING = 3;
+  }
+  CommandType command_type = 1; // 필수
+  optional string no_op_string_arg = 2; // NO_OP_STRING일 때 필수
+  optional int32 test_cmd_arg1_i32 = 3; // TEST_CMD_1일 때 필수
+  optional float test_cmd_arg2_f32 = 4; // TEST_CMD_1일 때 필수
+  optional uint32 test_cmd_arg3_u8 = 5; // TEST_CMD_1일 때 필수
+}
+
+// 필수: compCmdStat 포트 입력
+message CommandStatusInput {
+  uint32 opcode = 1; // 필수
+  uint32 cmd_seq = 2; // 필수
+  CmdResponseEnum response_enum = 3; // 필수
+  optional bool use_fuzzed_cmd_seq = 4; // 옵션
+  optional uint32 fuzzed_cmd_seq = 5; // 옵션
+}
+
+// 필수: 하나의 퍼징 액션
+message CmdDispatcherFuzzAction {
+  oneof action_type {
+    CommandBufferInput send_cmd_buffer = 1;
+    CommandRegistrationInput register_cmd = 2;
+    InternalCommandScenario internal_cmd = 3;
+    CommandStatusInput simulate_cmd_status = 4;
+  }
+}
+
+// 필수: 퍼저 입력 (actions는 1개 이상 필수)
+message CmdDispatcherFuzzInput {
+  repeated CmdDispatcherFuzzAction actions = 1; // 필수, 1개 이상
+  optional uint32 initial_queue_depth = 2; // 옵션
+  optional uint32 initial_instance_id = 3; // 옵션
+} 

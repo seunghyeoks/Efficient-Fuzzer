@@ -1,0 +1,19 @@
+FROM fprime_base:latest
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 기본 시스템 패키지 설치
+RUN apt-get update && apt-get install -y --no-install-recommends afl++ 
+
+# 작업 디렉토리 다시 설정
+WORKDIR /workspace/Efficient-Fuzzer
+
+# AFL++ 진입점 스크립트 복사
+RUN cp /workspace/Efficient-Fuzzer/src/aflplusplus/entrypoint-aflplusplus.sh /usr/local/bin/entrypoint.sh
+
+# 줄 끝 문자 변환 및 실행 권한 부여
+RUN dos2unix /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# 컨테이너 실행 시 AFL++ 컴파일 및 실행
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"] 

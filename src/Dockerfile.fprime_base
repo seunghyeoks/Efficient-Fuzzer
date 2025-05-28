@@ -1,0 +1,56 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 공통 패키지 설치
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    cmake \
+    build-essential \
+    clang \
+    clang-14 \
+    llvm-14 \
+    llvm-14-dev \
+    libclang-14-dev \
+    g++ \
+    python3 \
+    python3-pip \
+    python3-venv \
+    make \
+    curl \
+    dos2unix \
+  && rm -rf /var/lib/apt/lists/*
+
+# fprime 빌드 도구 설치
+RUN pip3 install -U fprime-tools fprime-gds
+
+# 작업 디렉토리 설정
+WORKDIR /workspace
+
+# fprime 프로젝트 클론 및 설정 (특정 브랜치 지정)
+RUN git clone https://github.com/seunghyeoks/Efficient-Fuzzer.git
+
+# 프로젝트 디렉토리로 이동
+WORKDIR /workspace/Efficient-Fuzzer
+
+# submodule 초기화 및 업데이트
+RUN git submodule init && git submodule update --recursive
+
+# fprime 도구 추가 설치
+RUN pip install -r "/workspace/Efficient-Fuzzer/src/fprime/requirements.txt"
+
+# fprime 서브모듈 확실히 업데이트
+WORKDIR /workspace/Efficient-Fuzzer/src/fprime
+RUN git submodule init && git submodule update --init --recursive
+
+# CmdDispatcher 테스트 하네스 생성 (UT 전용)
+WORKDIR /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher
+RUN fprime-util generate --ut && fprime-util build --ut
+
+# fprime 전체 빌드
+WORKDIR /workspace/Efficient-Fuzzer/src/fprime
+RUN fprime-util generate && fprime-util build
+RUN git submodule update --init --recursive
+
+# 작업 디렉토리 다시 설정
+WORKDIR /workspace/Efficient-Fuzzer
