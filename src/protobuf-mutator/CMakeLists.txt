@@ -185,11 +185,11 @@ target_link_libraries(proto_fuzzer PRIVATE
     CmdDispatcherFuzzTester # 사용자 정의 테스터 라이브러리
     fuzz_proto_lib          # 생성된 protobuf 코드를 포함하는 라이브러리
     ${FPRIME_LINK_LIBS_PATHS} # 전체 F' 라이브러리 목록
-    
+    -Wl,--end-group
     libprotobuf-mutator::libprotobuf-mutator
     libprotobuf-mutator::protobuf-mutator
     ${LIBPROTOBUF_MUTATOR}
-    -Wl,--end-group
+    
     gcov
 )
 
