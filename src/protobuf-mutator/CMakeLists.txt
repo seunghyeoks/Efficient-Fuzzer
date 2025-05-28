@@ -25,7 +25,7 @@ set(PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/cmd_dispatcher_fuzz_input.pb.h")
 add_custom_command(
     OUTPUT ${PROTO_SRCS} ${PROTO_HDRS}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${CMAKE_CURRENT_BINARY_DIR} -I${CMAKE_CURRENT_SOURCE_DIR} ${PROTO_FILE}
+    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --experimental_allow_proto3_optional --cpp_out=${CMAKE_CURRENT_BINARY_DIR} -I${CMAKE_CURRENT_SOURCE_DIR} ${PROTO_FILE}
     DEPENDS ${PROTO_FILE}
     COMMENT "Generating C++ sources from ${PROTO_FILE}"
 )
