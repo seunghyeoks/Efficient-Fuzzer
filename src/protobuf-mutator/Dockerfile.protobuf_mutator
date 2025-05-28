@@ -15,6 +15,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install --no-cache-dir cmake --upgrade
 
 
+# 최신 protobuf 설치 (예: 3.21.12)
+WORKDIR /tmp
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v3.21.12/protobuf-cpp-3.21.12.tar.gz && \
+    tar -xzf protobuf-cpp-3.21.12.tar.gz && \
+    cd protobuf-3.21.12 && \
+    ./configure && make -j$(nproc) && make install && ldconfig
+
+
 # 작업 디렉토리 다시 설정
 WORKDIR /workspace/Efficient-Fuzzer
 
@@ -23,7 +31,6 @@ RUN cp /workspace/Efficient-Fuzzer/src/protobuf-mutator/entrypoint-protobuf_muta
 
 # python-protobuf 설치 (이미 설치되어 있으면 생략 가능)
 RUN pip install "protobuf"
-RUN pip install "protobuf-compiler"
 
 # proto → python 코드 생성
 WORKDIR /workspace/Efficient-Fuzzer/src/protobuf-mutator
