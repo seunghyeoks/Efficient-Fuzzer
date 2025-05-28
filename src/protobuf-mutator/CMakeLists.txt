@@ -187,7 +187,7 @@ target_link_libraries(proto_fuzzer PRIVATE
     -Wl,--end-group
     gcov
     ${Protobuf_LIBRARIES}       # Link protobuf libraries
-    libprotobuf-mutator::libprotobuf-mutator # Link libprotobuf-mutator
+    libprotobuf-mutator::protobuf-mutator # Link libprotobuf-mutator (corrected target name)
 )
 
 install(TARGETS proto_fuzzer DESTINATION bin)
