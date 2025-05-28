@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 시스템 패키지 및 빌드 도구 설치
+# 기본 시스템 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     cmake \
@@ -19,10 +19,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     curl \
     dos2unix \
-    wget \
-    autoconf \
-    libtool \
-    pkg-config \
   && rm -rf /var/lib/apt/lists/*
 
 # fprime 빌드 도구 설치
@@ -38,46 +34,36 @@ RUN git clone -b Week13/temp https://github.com/seunghyeoks/Efficient-Fuzzer.git
 WORKDIR /workspace/Efficient-Fuzzer
 
 # submodule 초기화 및 업데이트
-RUN git submodule init && git submodule update --recursive
+RUN git submodule init && \
+    git submodule update --recursive
 
 # fprime 도구 추가 설치
 RUN pip install -r "/workspace/Efficient-Fuzzer/src/fprime/requirements.txt"
 
-# fprime 서브모듈 확실히 업데이트
+# fprime 디렉토리로 이동하여 해당 컨텍스트에서 서브모듈을 확실히 업데이트합니다.
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime
 RUN git submodule init && git submodule update --init --recursive
+
 
 # CmdDispatcher 테스트 하네스 생성 (UT 전용)
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime/Svc/CmdDispatcher
 RUN fprime-util generate --ut && fprime-util build --ut
 
-# fprime 전체 빌드
+
 WORKDIR /workspace/Efficient-Fuzzer/src/fprime
+
 RUN fprime-util generate && fprime-util build
-RUN git submodule update --init --recursive
-
-# Gramatron 설치 (json-c 최신 CMake 방식)
-WORKDIR /workspace
-RUN git clone https://github.com/HexHive/Gramatron.git
-WORKDIR /workspace/Gramatron
-RUN git clone https://github.com/json-c/json-c.git && \
-    cd json-c && \
-    mkdir build && cd build && \
-    cmake .. && make && make install
-
-# Gramatron 빌드
-WORKDIR /workspace/Gramatron/src
-RUN ./setup.sh
+RUN git submodule update --init --recursive # Moved earlier
 
 # 작업 디렉토리 다시 설정
 WORKDIR /workspace/Efficient-Fuzzer
 
-# Gramatron 진입점 스크립트 복사
-RUN cp /workspace/Efficient-Fuzzer/src/gramatron/entrypoint-gramatron.sh /usr/local/bin/entrypoint.sh
+# libFuzzer 진입점 스크립트 복사 (COPY 명령어 대신 클론된 저장소에서 복사)
+RUN cp /workspace/Efficient-Fuzzer/src/libFuzzer/entrypoint-libFuzzer.sh /usr/local/bin/entrypoint.sh
 
-# 줄 끝 문자 변환 및 실행 권한 부여
+# 줄 끝 문자 변환
 RUN dos2unix /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# 컨테이너 실행 시 Gramatron 실행
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"] 
+# 컨테이너 실행 시 libFuzzer 컴파일 및 실행
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
