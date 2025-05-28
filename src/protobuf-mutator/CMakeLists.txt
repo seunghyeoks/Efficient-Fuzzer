@@ -174,6 +174,7 @@ target_include_directories(proto_fuzzer PUBLIC
     "${FPRIME_SRC_ROOT}/Fw/Types"
     ${FPRIME_INC_LIST}
     ${CMAKE_CURRENT_BINARY_DIR}
+    /usr/local/include/libprotobuf-mutator
     /usr/local/include/libprotobuf-mutator/src
 )
 
