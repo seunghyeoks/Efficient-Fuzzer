@@ -13,12 +13,12 @@
 * base docker image build
 ``` sh
 cd src; 
-docker build -f Dockerfile.fprime_base -t fprime_base:latest . ;
+docker build --no-cache -f Dockerfile.fprime_base -t fprime_base:latest . ;
 ```
 * each fuzzer build
 ``` sh
-docker-compose build --no-cache
-docker-compose up
+docker-compose build --no-cache;
+docker-compose up;
 ```
 
 

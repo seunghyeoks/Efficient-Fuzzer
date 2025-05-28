@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir cmake --upgrade
---init --recursive # Moved earlier
+
 
 # 작업 디렉토리 다시 설정
 WORKDIR /workspace/Efficient-Fuzzer
