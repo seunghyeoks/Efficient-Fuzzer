@@ -24,9 +24,12 @@ RUN cp /workspace/Efficient-Fuzzer/src/protobuf-mutator/entrypoint-protobuf_muta
 # python-protobuf 설치 (이미 설치되어 있으면 생략 가능)
 RUN pip install "protobuf<=3.20.3"
 
-# proto → python 코드 생성
+# proto → python 코드 생성 (--experimental_allow_proto3_optional 플래그 확실히 적용)
 WORKDIR /workspace/Efficient-Fuzzer/src/protobuf-mutator
 RUN protoc --experimental_allow_proto3_optional --python_out=. cmd_dispatcher_fuzz_input.proto
+
+# 빌드 캐시 디렉토리 삭제 (기존 빌드 캐시 관련 문제 방지)
+RUN rm -rf build/ && rm -rf /workspace/Efficient-Fuzzer/src/protobuf-mutator/build/
 
 # seed 자동 생성 스크립트 복사 및 실행
 COPY make_seeds.py .
@@ -51,6 +54,8 @@ RUN git clone https://github.com/google/libprotobuf-mutator.git && \
 RUN dos2unix /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# 프로토버프 플래그를 환경 변수로 설정 (entrypoint.sh에서 사용)
+ENV PROTOC_FLAGS="--experimental_allow_proto3_optional"
 
 # 컨테이너 실행 시 libFuzzer 컴파일 및 실행
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

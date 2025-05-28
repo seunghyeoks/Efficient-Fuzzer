@@ -21,11 +21,23 @@ set(PROTO_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmd_dispatcher_fuzz_input.proto")
 set(PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/cmd_dispatcher_fuzz_input.pb.cc")
 set(PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/cmd_dispatcher_fuzz_input.pb.h")
 
+# Protobuf 명령행 플래그 설정 (환경 변수 또는 CMake 변수에서 가져오기)
+if(DEFINED ENV{PROTOC_FLAGS})
+    set(PROTOC_EXTRA_FLAGS $ENV{PROTOC_FLAGS})
+    message(STATUS "Using protoc flags from environment: ${PROTOC_EXTRA_FLAGS}")
+elseif(DEFINED PROTOBUF_PROTOC_FLAGS)
+    set(PROTOC_EXTRA_FLAGS ${PROTOBUF_PROTOC_FLAGS})
+    message(STATUS "Using protoc flags from CMake variable: ${PROTOC_EXTRA_FLAGS}")
+else()
+    set(PROTOC_EXTRA_FLAGS "--experimental_allow_proto3_optional")
+    message(STATUS "Using default protoc flags: ${PROTOC_EXTRA_FLAGS}")
+endif()
+
 # Protobuf 컴파일 규칙
 add_custom_command(
     OUTPUT ${PROTO_SRCS} ${PROTO_HDRS}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --experimental_allow_proto3_optional --cpp_out=${CMAKE_CURRENT_BINARY_DIR} -I${CMAKE_CURRENT_SOURCE_DIR} ${PROTO_FILE}
+    COMMAND ${Protobuf_PROTOC_EXECUTABLE} ${PROTOC_EXTRA_FLAGS} --cpp_out=${CMAKE_CURRENT_BINARY_DIR} -I${CMAKE_CURRENT_SOURCE_DIR} ${PROTO_FILE}
     DEPENDS ${PROTO_FILE}
     COMMENT "Generating C++ sources from ${PROTO_FILE}"
 )

@@ -29,14 +29,16 @@ cp /workspace/Efficient-Fuzzer/src/protobuf-mutator/seed/seed*.bin "$BUILD_DIR/c
 
 
 echo "=== CMake 구성 시작 ==="
-# CMake 실행 시 상세 로그 출력 옵션 추가 (필요시)
-# cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
-cmake ..
+# CMake 실행 시 프로토버프 옵션을 확실히 적용하기 위해 환경 변수 설정
+export PROTOC_FLAGS="--experimental_allow_proto3_optional"
+# 캐시 관련 문제 방지를 위해 강제 재구성 플래그 추가
+cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DPROTOBUF_PROTOC_FLAGS="--experimental_allow_proto3_optional" ..
 
 echo "=== Make 빌드 시작 (proto_fuzzer) ==="
+# 클린 빌드를 위해 먼저 clean 실행
+make clean || true
 # CMakeLists.txt에서 정의한 실행 파일 이름은 'proto_fuzzer' 입니다.
-# make VERBOSE=1 proto_fuzzer # 임시 주석 처리. 상세 로그 필요시 이 라인 사용
-make proto_fuzzer
+make VERBOSE=1 proto_fuzzer
 
 echo "결과 디렉토리 생성 ($BUILD_DIR/findings) ==="
 # 현재 디렉토리($BUILD_DIR) 내에 findings 디렉토리 생성
