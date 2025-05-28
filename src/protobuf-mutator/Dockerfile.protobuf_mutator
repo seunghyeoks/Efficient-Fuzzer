@@ -18,7 +18,7 @@ RUN pip3 install --no-cache-dir cmake --upgrade
 
 # CMake 기반 protobuf 빌드
 WORKDIR /tmp
-RUN git clone -b v3.20.x https://github.com/protocolbuffers/protobuf.git && \
+RUN git clone -b 3.20.x https://github.com/protocolbuffers/protobuf.git && \
     cd protobuf && git submodule update --init --recursive && \
     mkdir build && cd build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
