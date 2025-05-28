@@ -2,7 +2,38 @@ cmake_minimum_required(VERSION 3.13)
 project(FPrimeCmdDispatcherFuzzer)
 
 set(CMAKE_CXX_STANDARD 11)
+# protobuf-mutator는 C++17 이상을 권장하지만, F' 호환성을 위해 우선 11 유지, 필요시 상향
+# set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -Wall -Wextra -fsanitize=address -Wno-unused-parameter -Wno-inconsistent-missing-override")
+# libprotobuf-mutator 사용 시 C++17 활성화 (선택적, F' 코드와 호환성 확인 필요)
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+
+# Protobuf 설정
+find_package(Protobuf REQUIRED)
+message(STATUS "Found Protobuf: ${Protobuf_LIBRARIES}")
+# libprotobuf-mutator 설정
+find_package(libprotobuf-mutator CONFIG REQUIRED)
+message(STATUS "Found libprotobuf-mutator: ${libprotobuf-mutator_LIBRARIES}")
+
+# Proto 파일 경로
+set(PROTO_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmd_dispatcher_fuzz_input.proto")
+# 생성될 C++ 파일 경로
+set(PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/cmd_dispatcher_fuzz_input.pb.cc")
+set(PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/cmd_dispatcher_fuzz_input.pb.h")
+
+# Protobuf 컴파일 규칙
+add_custom_command(
+    OUTPUT ${PROTO_SRCS} ${PROTO_HDRS}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${CMAKE_CURRENT_BINARY_DIR} -I${CMAKE_CURRENT_SOURCE_DIR} ${PROTO_FILE}
+    DEPENDS ${PROTO_FILE}
+    COMMENT "Generating C++ sources from ${PROTO_FILE}"
+)
+
+# 생성된 Protobuf 소스를 포함할 라이브러리 (선택적, 직접 실행 파일에 추가 가능)
+add_library(fuzz_proto_lib OBJECT ${PROTO_SRCS})
+_target_compile_options(fuzz_proto_lib INTERFACE -Wno-zero-as-null-pointer-constant -Wno-shorten-64-to-32 -Wno-unused-parameter -Wno-unused-variable)
+target_include_directories(fuzz_proto_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 # fprime 경로 설정
 set(FPRIME_SRC_ROOT "${CMAKE_SOURCE_DIR}/../fprime")
@@ -136,6 +167,7 @@ target_include_directories(cmd_fuzzer PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../FuzzTester"
     "${FPRIME_SRC_ROOT}/Fw/Types"
     ${FPRIME_INC_LIST}
+    ${CMAKE_CURRENT_BINARY_DIR} # For generated protobuf headers
 )
 target_link_libraries(cmd_fuzzer PRIVATE
     -Wl,--start-group
@@ -153,6 +185,8 @@ target_link_libraries(cmd_fuzzer PRIVATE
     ${FPRIME_LINK_LIBS_PATHS} # 전체 F' 라이브러리 목록
     -Wl,--end-group
     gcov
+    ${Protobuf_LIBRARIES}       # Link protobuf libraries
+    libprotobuf-mutator::libprotobuf-mutator # Link libprotobuf-mutator
 )
 
 install(TARGETS cmd_fuzzer DESTINATION bin)

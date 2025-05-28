@@ -19,6 +19,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     curl \
     dos2unix \
+    protobuf-compiler \
+    libprotobuf-dev \
+    pkg-config \
+    autoconf \
+    libtool \
+    ninja-build \
+    liblzma-dev \
+    libz-dev \
   && rm -rf /var/lib/apt/lists/*
 
 # fprime 빌드 도구 설치
@@ -67,3 +75,12 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # 컨테이너 실행 시 libFuzzer 컴파일 및 실행
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# libprotobuf-mutator 설치
+WORKDIR /workspace
+RUN git clone https://github.com/google/libprotobuf-mutator.git && \
+    cd libprotobuf-mutator && \
+    mkdir build && cd build && \
+    cmake .. -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON && \
+    ninja && \
+    ninja install

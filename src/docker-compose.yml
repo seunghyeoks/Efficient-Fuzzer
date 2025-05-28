@@ -20,3 +20,14 @@ services:
       - ../..:/workspace/local-code
     tty: true
     stdin_open: true
+
+  protobuf_mutator:
+    build:
+      context: ./protobuf-mutator
+      dockerfile: Dockerfile.protobuf-mutator
+    container_name: fprime_protobuf_mutator
+    privileged: true
+    volumes:
+      - ../..:/workspace/local-code
+    tty: true
+    stdin_open: true

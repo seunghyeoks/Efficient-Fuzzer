@@ -95,6 +95,6 @@ message CmdDispatcherFuzzInput {
   repeated CmdDispatcherFuzzAction actions = 1;
 
   // 전역적인 설정 (예: CmdDispatcherImpl 초기화 파라미터) - 필요시 추가
-  // uint32 initial_queue_depth = 2;
-  // uint32 initial_instance_id = 3;
+  uint32 initial_queue_depth = 2;
+  uint32 initial_instance_id = 3;
 } 
