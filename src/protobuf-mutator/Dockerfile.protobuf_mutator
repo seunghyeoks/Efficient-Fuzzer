@@ -18,8 +18,8 @@ RUN pip3 install --no-cache-dir cmake --upgrade
 
 # 최신 protobuf 설치 (예: 3.21.12)
 WORKDIR /tmp
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v3.21.12/protobuf-cpp-3.21.12.tar.gz && \
-    tar -xzf protobuf-cpp-3.21.12.tar.gz && \
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v3.21.12/protobuf-3.21.12.tar.gz && \
+    tar -xzf protobuf-3.21.12.tar.gz && \
     cd protobuf-3.21.12 && \
     ./configure && make -j$(nproc) && make install && ldconfig
 
