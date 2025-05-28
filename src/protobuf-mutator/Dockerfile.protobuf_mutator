@@ -2,6 +2,7 @@ FROM fprime_base:latest
 
 # 기본 시스템 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
     protobuf-compiler \
     libprotobuf-dev \
     pkg-config \
