@@ -26,7 +26,7 @@ RUN pip install "protobuf<=3.20.3"
 
 # proto → python 코드 생성
 WORKDIR /workspace/Efficient-Fuzzer/src/protobuf-mutator
-RUN protoc --python_out=. cmd_dispatcher_fuzz_input.proto
+RUN protoc --experimental_allow_proto3_optional --python_out=. cmd_dispatcher_fuzz_input.proto
 
 # seed 자동 생성 스크립트 복사 및 실행
 COPY make_seeds.py .
