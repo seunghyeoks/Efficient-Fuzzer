@@ -192,6 +192,7 @@ target_link_libraries(proto_fuzzer PRIVATE
     gcov
     ${Protobuf_LIBRARIES}
     ${LIBPROTOBUF_MUTATOR}
+    /usr/local/lib/libprotobuf-mutator.a
 )
 
 install(TARGETS proto_fuzzer DESTINATION bin)
