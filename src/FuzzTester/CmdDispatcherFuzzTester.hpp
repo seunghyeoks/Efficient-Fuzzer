@@ -8,18 +8,30 @@
 #include <Fw/Com/ComBuffer.hpp>
 #include <Fw/Com/ComPacket.hpp>
 #include <vector>
-#include <string> // For event names or simplified event info
-
 
 namespace Svc {
 
     class CmdDispatcherFuzzTester : public CommandDispatcherTesterBase {
         public:
-            // Constructor and destructor
+            // 퍼징 결과 추적 구조체
+            struct FuzzResult {
+                bool hasError;
+                Fw::CmdResponse lastResponse;
+                U32 lastOpcode;
+                std::vector<Fw::CmdResponse> allResponses;
+                U32 dispatchCount;
+                U32 errorCount;
+                bool opCodeReregistered;
+                
+                FuzzResult() : hasError(false), lastResponse(Fw::CmdResponse::OK), 
+                            lastOpcode(0), dispatchCount(0), errorCount(0), opCodeReregistered(false) {}
+            };
+
+            // 생성자: CommandDispatcherImpl을 내부에서 직접 생성하도록 변경
             CmdDispatcherFuzzTester();
             virtual ~CmdDispatcherFuzzTester();
             
-            // Initialization function that can be called by the fuzzer harness
+            // 기존 init 함수 선언 추가
             void init(NATIVE_INT_TYPE instance = 0);
             
             // 퍼저의 랜덤 값을 받아서 초기화에 활용할 수 있도록 변경
@@ -28,9 +40,11 @@ namespace Svc {
             // 컴포넌트 포트 연결
             void connectPorts();
             
+   
             // 상태 초기화
             void resetState();
             
+
             // CommandDispatcherImpl에 직접 접근
             CommandDispatcherImpl& getImpl();
             
@@ -45,34 +59,6 @@ namespace Svc {
             // Fuzzer를 위한 일반화된 테스트 실행 메소드: 상태 초기화, 명령 주입, 디스패치 수행 후 결과 반환
             FuzzResult tryTest(const uint8_t* data, size_t size);
         
-            // Main fuzzing entry point
-            FuzzResult getFuzzResult() { return this->m_fuzzResult; }
-
-            // Public wrapper for regCommands if needed, or call directly in tryTest
-            void registerCommands();
-
-            // Port handlers - must match the signatures from the base class
-            void from_compCmdSend_handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, Fw::CmdArgBuffer &args);
-            void from_seqCmdStatus_handler(NATIVE_INT_TYPE portNum, FwOpcodeType opCode, U32 cmdSeq, const Fw::CmdResponse &response);
-            void from_pingOut_handler(NATIVE_INT_TYPE portNum, U32 key);
-
-            // Telemetry handlers
-            void tlmInput_CommandsDispatched(const Fw::Time& timeTag, const U32 val);
-            void tlmInput_CommandErrors(const Fw::Time& timeTag, const U32 val);
-
-            // Event handlers - must match the signatures from the generated TesterBase
-            void logIn_DIAGNOSTIC_OpCodeRegistered(U32 Opcode, I32 port, I32 slot);
-            void logIn_DIAGNOSTIC_OpCodeReregistered(U32 Opcode, I32 port);
-            void logIn_COMMAND_OpCodeDispatched(U32 Opcode, I32 port);
-            void logIn_COMMAND_OpCodeCompleted(U32 Opcode);
-            void logIn_COMMAND_OpCodeError(U32 Opcode, const Fw::CmdResponse& error); // Ensure const& for CmdResponse
-            void logIn_WARNING_HI_MalformedCommand(Fw::DeserialStatus Status);
-            void logIn_WARNING_HI_InvalidCommand(U32 Opcode);
-            void logIn_WARNING_HI_TooManyCommands(U32 Opcode);
-            void logIn_ACTIVITY_HI_NoOpReceived();
-            void logIn_ACTIVITY_HI_NoOpStringReceived(const Fw::LogStringArg& message); // Ensure const&
-            void logIn_ACTIVITY_HI_TestCmd1Args(I32 arg1, F32 arg2, U8 arg3);
-
         protected:
             // compCmdSend 핸들러 오버라이드
             void from_compCmdSend_handler(
@@ -140,32 +126,6 @@ namespace Svc {
             FwOpcodeType m_seqStatusOpCode = 0;
             U32 m_seqStatusCmdSeq = 0;
             Fw::CmdResponse m_seqStatusCmdResponse = Fw::CmdResponse::OK;
-
-            // Internal helper methods
-            void connectPorts();
-            void resetState();
-            // CommandDispatcherImpl& getImpl(); // Keep if direct access is still needed
-            // void sendPing(U32 key); // Keep if ping testing is part of fuzz scenarios
-
-            // Helper to get the component instance, ensures correct type
-            Svc::CommandDispatcherImpl& getImpl_private() { return this->m_impl; }
-
-            // Structure to hold event information
-            struct EventInfo {
-                std::string name; // Event name (e.g., "OpCodeRegistered", "MalformedCommand")
-                FwOpcodeType opcode;
-                I32 portOrSlot; // Can represent port, slot, or other integer params
-                Fw::CmdResponse response;
-                Fw::DeserialStatus desStatus;
-                // Add more fields as necessary for different events
-                // Example for string arguments in events:
-                // Fw::LogStringArg eventStringArg; 
-
-                // Default constructor
-                EventInfo() : name(""), opcode(0), portOrSlot(0) {}
-                // Constructor for easier logging
-                EventInfo(const std::string& n) : name(n), opcode(0), portOrSlot(0) {}
-            };
         };
 
 } // namespace Svc
