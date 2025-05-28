@@ -74,6 +74,16 @@ RUN cp /workspace/Efficient-Fuzzer/src/protobuf-mutator/entrypoint-protobuf_muta
 RUN dos2unix /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# python-protobuf 설치 (이미 설치되어 있으면 생략 가능)
+RUN pip install protobuf
+
+# proto → python 코드 생성
+WORKDIR /workspace/Efficient-Fuzzer/src/protobuf-mutator
+RUN protoc --python_out=. cmd_dispatcher_fuzz_input.proto
+
+# seed 자동 생성 스크립트 복사 및 실행
+COPY make_seeds.py .
+RUN python3 make_seeds.py
 
 # libprotobuf-mutator 설치
 WORKDIR /workspace
@@ -88,11 +98,6 @@ RUN git clone https://github.com/google/libprotobuf-mutator.git && \
       -DBUILD_SHARED_LIBS=OFF && \
     ninja -v && \
     ninja -v install
-
-
-
-
-
 
 # 컨테이너 실행 시 libFuzzer 컴파일 및 실행
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -24,8 +24,8 @@ mkdir -p "$BUILD_DIR/corpus"
 # python3 -c "with open('$BUILD_DIR/corpus/seed_user.bin','wb') as f: f.write(bytes([0x01,0x00,0x50,0x00,0x00,0x00,0x64,0x00,0x00,0x00,0x02,0x00,0x00,0x00]))"
 
 # === Seed corpus 복사 ===
-# echo "=== FuzzTester/seed/*.bin 파일을 corpus/로 복사 ==="
-# cp /workspace/Efficient-Fuzzer/src/FuzzTester/seed/seed*.bin "$BUILD_DIR/corpus/" || true
+echo "=== FuzzTester/seed/*.bin 파일을 corpus/로 복사 ==="
+cp /workspace/Efficient-Fuzzer/src/protobuf-mutator/seed/seed*.bin "$BUILD_DIR/corpus/" || true
 
 
 echo "=== CMake 구성 시작 ==="
