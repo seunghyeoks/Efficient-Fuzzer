@@ -32,7 +32,7 @@ add_custom_command(
 
 # 생성된 Protobuf 소스를 포함할 라이브러리 (선택적, 직접 실행 파일에 추가 가능)
 add_library(fuzz_proto_lib OBJECT ${PROTO_SRCS})
-_target_compile_options(fuzz_proto_lib INTERFACE -Wno-zero-as-null-pointer-constant -Wno-shorten-64-to-32 -Wno-unused-parameter -Wno-unused-variable)
+target_compile_options(fuzz_proto_lib INTERFACE -Wno-zero-as-null-pointer-constant -Wno-shorten-64-to-32 -Wno-unused-parameter -Wno-unused-variable)
 target_include_directories(fuzz_proto_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 # fprime 경로 설정
@@ -159,18 +159,18 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 # ) # 이 부분을 주석 처리 또는 삭제합니다.
 
 # fuzzer 메인 실행 파일
-add_executable(cmd_fuzzer protobuf_mutator_main.cpp)
-# target_compile_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer) # libprotobuf-mutator는 이 플래그를 자체적으로 처리할 수 있음
-# target_link_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer) # libprotobuf-mutator는 이 플래그를 자체적으로 처리할 수 있음
+add_executable(proto_fuzzer protobuf_mutator_main.cpp)
+target_compile_options(proto_fuzzer PRIVATE -fsanitize=fuzzer)
+target_link_options(proto_fuzzer PRIVATE -fsanitize=fuzzer)
 
-target_include_directories(cmd_fuzzer PUBLIC
+target_include_directories(proto_fuzzer PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../FuzzTester"
     "${FPRIME_SRC_ROOT}/Fw/Types"
     ${FPRIME_INC_LIST}
     ${CMAKE_CURRENT_BINARY_DIR} # For generated protobuf headers
 )
-target_link_libraries(cmd_fuzzer PRIVATE
+target_link_libraries(proto_fuzzer PRIVATE
     -Wl,--start-group
     # Custom compiled libraries first
     custom_snprintf_format
@@ -190,4 +190,4 @@ target_link_libraries(cmd_fuzzer PRIVATE
     libprotobuf-mutator::libprotobuf-mutator # Link libprotobuf-mutator
 )
 
-install(TARGETS cmd_fuzzer DESTINATION bin)
+install(TARGETS proto_fuzzer DESTINATION bin)
