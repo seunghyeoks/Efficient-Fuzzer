@@ -2,9 +2,8 @@ FROM fprime_base:latest
 
 # 기본 시스템 패키지 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
     protobuf-compiler \
-    libprotobuf-dev \
+    libprotobuf \
     pkg-config \
     autoconf \
     libtool \
@@ -14,16 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir cmake --upgrade
-
-
-# CMake 기반 protobuf 빌드
-WORKDIR /tmp
-RUN git clone -b 3.20.x https://github.com/protocolbuffers/protobuf.git && \
-    cd protobuf && git submodule update --init --recursive && \
-    ./autogen.sh && \
-    ./configure && \
-    make -j$(nproc) && make install && ldconfig && \
-    cd / && rm -rf /tmp/*
 
 # 작업 디렉토리 다시 설정
 WORKDIR /workspace/Efficient-Fuzzer
