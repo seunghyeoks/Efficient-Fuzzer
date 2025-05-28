@@ -21,7 +21,7 @@ WORKDIR /workspace/Efficient-Fuzzer
 RUN cp /workspace/Efficient-Fuzzer/src/protobuf-mutator/entrypoint-protobuf_mutator.sh /usr/local/bin/entrypoint.sh
 
 # python-protobuf 설치 (이미 설치되어 있으면 생략 가능)
-RUN pip install "protobuf<=3.20.3"
+RUN pip install "protobuf<=3.12.4"
 
 # proto → python 코드 생성
 WORKDIR /workspace/Efficient-Fuzzer/src/protobuf-mutator
