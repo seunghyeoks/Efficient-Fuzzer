@@ -16,13 +16,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install --no-cache-dir cmake --upgrade
 
 
-# 최신 protobuf 설치 (예: 3.21.12)
+# CMake 기반 protobuf 빌드
 WORKDIR /tmp
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v3.21.12/protobuf-3.21.12.tar.gz && \
-    tar -xzf protobuf-3.21.12.tar.gz && \
-    cd protobuf-3.21.12 && \
-    ./configure && make -j$(nproc) && make install && ldconfig
-
+RUN git clone -b v3.20.x https://github.com/protocolbuffers/protobuf.git && \
+    cd protobuf && git submodule update --init --recursive && \
+    mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    make -j$(nproc) && make install && ldconfig && \
+    cd / && rm -rf /tmp/*
 
 # 작업 디렉토리 다시 설정
 WORKDIR /workspace/Efficient-Fuzzer
