@@ -12,11 +12,12 @@
 ## ⚙️ Build & Test
 * base docker image build
 ``` sh
-cd src; 
+cd src;
 docker build --no-cache -f Dockerfile.fprime_base -t fprime_base:latest . ;
 ```
 * each fuzzer build
 ``` sh
+cd src;
 docker-compose build --no-cache;
 docker-compose up;
 ```
