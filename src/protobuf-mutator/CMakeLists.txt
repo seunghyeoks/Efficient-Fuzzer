@@ -159,9 +159,10 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 # ) # 이 부분을 주석 처리 또는 삭제합니다.
 
 # fuzzer 메인 실행 파일
-add_executable(cmd_fuzzer libFuzzer_main.cpp)
-target_compile_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer)
-target_link_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer)
+add_executable(cmd_fuzzer protobuf_mutator_main.cpp)
+# target_compile_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer) # libprotobuf-mutator는 이 플래그를 자체적으로 처리할 수 있음
+# target_link_options(cmd_fuzzer PRIVATE -fsanitize=fuzzer) # libprotobuf-mutator는 이 플래그를 자체적으로 처리할 수 있음
+
 target_include_directories(cmd_fuzzer PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../FuzzTester"

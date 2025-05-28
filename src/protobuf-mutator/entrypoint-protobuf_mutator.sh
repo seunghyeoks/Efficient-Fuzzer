@@ -7,7 +7,7 @@ set -e
 echo "=== F-Prime CmdDispatcher LibFuzzer 시작 ==="
 
 # CMake 기반 빌드 디렉토리 설정
-BUILD_DIR="/workspace/Efficient-Fuzzer/src/libFuzzer/build"
+BUILD_DIR="/workspace/Efficient-Fuzzer/src/protobuf-mutator/build"
 
 echo "=== 기존 빌드 디렉토리 삭제 및 생성 ==="
 rm -rf "$BUILD_DIR"
