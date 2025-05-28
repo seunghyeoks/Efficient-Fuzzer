@@ -93,8 +93,6 @@ set(FPRIME_LINK_LIBS_PATHS
     ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a
 )
 
-
-
 # Custom compiled F' sources to resolve specific linking issues
 
 # For Fw::stringFormat
@@ -159,6 +157,13 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 # ) # 이 부분을 주석 처리 또는 삭제합니다.
 
 # fuzzer 메인 실행 파일
+find_library(LIBPROTOBUF_MUTATOR NAMES protobuf-mutator HINTS /usr/local/lib /usr/lib)
+if(NOT LIBPROTOBUF_MUTATOR)
+    message(FATAL_ERROR "libprotobuf-mutator not found!")
+else()
+    message(STATUS "Found libprotobuf-mutator: ${LIBPROTOBUF_MUTATOR}")
+endif()
+
 add_executable(proto_fuzzer protobuf_mutator_main.cpp)
 target_compile_options(proto_fuzzer PRIVATE -fsanitize=fuzzer)
 target_link_options(proto_fuzzer PRIVATE -fsanitize=fuzzer)
@@ -168,29 +173,23 @@ target_include_directories(proto_fuzzer PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../FuzzTester"
     "${FPRIME_SRC_ROOT}/Fw/Types"
     ${FPRIME_INC_LIST}
-    ${CMAKE_CURRENT_BINARY_DIR} # For generated protobuf headers
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
+
 target_link_libraries(proto_fuzzer PRIVATE
     -Wl,--start-group
-    # Custom compiled libraries first
     custom_snprintf_format
-    custom_OsImplementations # 이전 custom_DefaultPriorityQueue 에서 이름 변경
-
-    # 주요 라이브러리 우선 명시 (이전 시도에서 남은 부분, 필요에 따라 유지 또는 제거)
-    ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a # custom_snprintf_format으로 대체되었으므로 중복 가능성 있음
+    custom_OsImplementations
+    ${FPRIME_UT_LIB_DIR}/libsnprintf-format.a
     ${FPRIME_UT_LIB_DIR}/libOs_Mutex_Posix.a
     ${FPRIME_UT_LIB_DIR}/libOs_Task_Posix.a
-    # ${FPRIME_UT_LIB_DIR}/libOs_Generic_PriorityQueue.a # custom_OsImplementations에 포함됨
-
-    CmdDispatcherFuzzTester # 사용자 정의 테스터 라이브러리
-    fuzz_proto_lib          # 생성된 protobuf 코드를 포함하는 라이브러리
-    ${FPRIME_LINK_LIBS_PATHS} # 전체 F' 라이브러리 목록
+    CmdDispatcherFuzzTester
+    fuzz_proto_lib
+    ${FPRIME_LINK_LIBS_PATHS}
     -Wl,--end-group
-    libprotobuf-mutator::libprotobuf-mutator
-    libprotobuf-mutator::protobuf-mutator
-    ${LIBPROTOBUF_MUTATOR}
-    
     gcov
+    ${Protobuf_LIBRARIES}
+    ${LIBPROTOBUF_MUTATOR}
 )
 
 install(TARGETS proto_fuzzer DESTINATION bin)
