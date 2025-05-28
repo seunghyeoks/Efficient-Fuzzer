@@ -157,8 +157,19 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 # ) # 이 부분을 주석 처리 또는 삭제합니다.
 
 
-ls -l /usr/local/lib/libprotobuf-mutator-libfuzzer.a
-nm /usr/local/lib/libprotobuf-mutator-libfuzzer.a | grep CustomProtoMutator
+if(EXISTS "/usr/local/lib/libprotobuf-mutator-libfuzzer.a")
+    message(STATUS "libprotobuf-mutator-libfuzzer.a exists!")
+    execute_process(
+        COMMAND nm /usr/local/lib/libprotobuf-mutator-libfuzzer.a
+        COMMAND grep CustomProtoMutator
+        RESULT_VARIABLE NM_RESULT
+        OUTPUT_VARIABLE NM_OUTPUT
+        ERROR_VARIABLE NM_ERROR
+    )
+    message(STATUS "nm output: ${NM_OUTPUT}")
+else()
+    message(FATAL_ERROR "libprotobuf-mutator-libfuzzer.a NOT FOUND!")
+endif()
 
 
 # fuzzer 메인 실행 파일
