@@ -14,39 +14,6 @@
 #include <sstream> // 문자열 스트림 사용을 위해 추가
 #include <cstdlib>
 
-/*
-namespace {
-    // Fuzzer 전용 assert 훅
-    class FuzzAssertHook : public Fw::AssertHook {
-    public:
-        void reportAssert(
-            FILE_NAME_ARG file,
-            NATIVE_UINT_TYPE lineNo,
-            NATIVE_UINT_TYPE numArgs,
-            FwAssertArgType arg1,
-            FwAssertArgType arg2,
-            FwAssertArgType arg3,
-            FwAssertArgType arg4,
-            FwAssertArgType arg5,
-            FwAssertArgType arg6
-        ) override {
-            // 기본 assert 메시지 출력
-            Fw::AssertHook::reportAssert(file, lineNo, numArgs,
-                                         arg1, arg2, arg3,
-                                         arg4, arg5, arg6);
-            // TODO: 필요 시 전역 플래그 설정 등 추가 로직 작성
-        }
-        void doAssert() override {
-            // libFuzzer가 크래시로 인식하도록 trap 사용
-            __builtin_trap();
-        }
-    };
-    static FuzzAssertHook g_fuzzAssertHook;
-    __attribute__((constructor)) static void registerFuzzAssertHook() {
-        g_fuzzAssertHook.registerHook();
-    }
-} // anonymous namespace
-*/
 
 // Helper function to convert FuzzedCmdPacket (protobuf) to Fw::ComBuffer
 // This function attempts to serialize the protobuf message into a ComBuffer.

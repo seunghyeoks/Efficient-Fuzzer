@@ -24,8 +24,8 @@ mkdir -p "$BUILD_DIR/corpus"
 # python3 -c "with open('$BUILD_DIR/corpus/seed_user.bin','wb') as f: f.write(bytes([0x01,0x00,0x50,0x00,0x00,0x00,0x64,0x00,0x00,0x00,0x02,0x00,0x00,0x00]))"
 
 # === Seed corpus 복사 ===
-echo "=== FuzzTester/seed/*.bin 파일을 corpus/로 복사 ==="
-cp /workspace/Efficient-Fuzzer/src/FuzzTester/seed/seed*.bin "$BUILD_DIR/corpus/" || true
+# echo "=== FuzzTester/seed/*.bin 파일을 corpus/로 복사 ==="
+# cp /workspace/Efficient-Fuzzer/src/FuzzTester/seed/seed*.bin "$BUILD_DIR/corpus/" || true
 
 
 echo "=== CMake 구성 시작 ==="
@@ -33,22 +33,22 @@ echo "=== CMake 구성 시작 ==="
 # cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
 cmake ..
 
-echo "=== Make 빌드 시작 (cmd_fuzzer) ==="
-# CMakeLists.txt에서 정의한 실행 파일 이름은 'cmd_fuzzer' 입니다.
-# make VERBOSE=1 cmd_fuzzer # 임시 주석 처리. 상세 로그 필요시 이 라인 사용
-make cmd_fuzzer
+echo "=== Make 빌드 시작 (proto_fuzzer) ==="
+# CMakeLists.txt에서 정의한 실행 파일 이름은 'proto_fuzzer' 입니다.
+# make VERBOSE=1 proto_fuzzer # 임시 주석 처리. 상세 로그 필요시 이 라인 사용
+make proto_fuzzer
 
 echo "결과 디렉토리 생성 ($BUILD_DIR/findings) ==="
 # 현재 디렉토리($BUILD_DIR) 내에 findings 디렉토리 생성
 mkdir -p findings
 
-echo "=== libFuzzer 실행 시작 (./cmd_fuzzer) ==="
+echo "=== libFuzzer 실행 시작 (./proto_fuzzer) ==="
 # ASAN 설정
 export ASAN_OPTIONS="detect_leaks=0:allocator_may_return_null=1:handle_abort=1:abort_on_error=0"
 
-# 현재 디렉토리($BUILD_DIR)에 빌드된 'cmd_fuzzer' 실행 파일을 실행
+# 현재 디렉토리($BUILD_DIR)에 빌드된 'proto_fuzzer' 실행 파일을 실행
 # corpus 및 findings 경로는 현재 디렉토리를 기준으로 전달
-./cmd_fuzzer -max_len=1024 \
+./proto_fuzzer -max_len=1024 \
              -artifact_prefix=findings/ \
              -print_final_stats=1 \
              -fork=1 \
