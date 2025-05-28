@@ -156,6 +156,11 @@ target_compile_definitions(CmdDispatcherFuzzTester PRIVATE
 #     -Wl,--end-group
 # ) # 이 부분을 주석 처리 또는 삭제합니다.
 
+
+ls -l /usr/local/lib/libprotobuf-mutator-libfuzzer.a
+nm /usr/local/lib/libprotobuf-mutator-libfuzzer.a | grep CustomProtoMutator
+
+
 # fuzzer 메인 실행 파일
 find_library(LIBPROTOBUF_MUTATOR NAMES protobuf-mutator HINTS /usr/local/lib /usr/lib)
 if(NOT LIBPROTOBUF_MUTATOR)
@@ -193,6 +198,7 @@ target_link_libraries(proto_fuzzer PRIVATE
     ${Protobuf_LIBRARIES}
     ${LIBPROTOBUF_MUTATOR}
     /usr/local/lib/libprotobuf-mutator.a
+    /usr/local/lib/libprotobuf-mutator-libfuzzer.a
 )
 
 install(TARGETS proto_fuzzer DESTINATION bin)
