@@ -2,58 +2,56 @@ syntax = "proto3";
 
 package Svc;
 
-// F-Prime의 기본 CmdResponse 열거형 모방
+// 필수: Fw::CmdResponse에 맞춘 응답 enum
 enum CmdResponseEnum {
   OK = 0;
   VALIDATION_ERROR = 1;
-  FORMAT_ERROR = 2; // Fw::ComPacket::deserialize 에서 발생 가능한 오류
+  FORMAT_ERROR = 2;
   INVALID_OPCODE = 3;
-  BUSY = 4; // Fw::CmdResponse에는 없지만, 유사한 개념
+  BUSY = 4;
   EXECUTION_ERROR = 5;
-  TIMEOUT = 6; // Fw::CmdResponse에는 없지만, 유사한 개념
-  REROUTED = 7; // Fw::CmdResponse에는 없지만, 유사한 개념
-  BAD_LENGTH = 8; // Fw::ComPacket::deserialize 에서 발생 가능한 오류
-  TYPE_MISMATCH = 9; // Fw::ComPacket::deserialize 에서 발생 가능한 오류 (DeserialStatus)
+  TIMEOUT = 6;
+  REROUTED = 7;
+  BAD_LENGTH = 8;
+  TYPE_MISMATCH = 9;
 }
 
-// F-Prime의 Packet Descriptor Type 모방
+// 필수: 패킷 타입 (커맨드 입력은 FW_PACKET_COMMAND만 허용)
 enum PacketDescriptorType {
   FW_PACKET_COMMAND = 0;
   FW_PACKET_TELEM = 1;
   FW_PACKET_FILE = 2;
   FW_PACKET_LOG = 3;
   FW_PACKET_FATAL = 4;
-  FW_PACKET_UNKNOWN = 99; // Fuzzer가 임의의 값을 생성하도록 허용
+  FW_PACKET_UNKNOWN = 99;
 }
 
-// 실제 Fw::CmdArgBuffer는 직렬화된 바이너리 데이터이므로, 여기서는 bytes로 표현
+// 필수: 커맨드 인자 (직렬화된 바이너리)
 message CommandArguments {
-  bytes arg_data = 1; // 직렬화된 커맨드 인자들
+  bytes arg_data = 1; // 필수
 }
 
-// CmdPacket의 내용을 모방. 실제 Fw::CmdPacket은 바이너리 직렬화 형식임.
-// Fuzzer가 더 쉽게 다양한 데이터를 생성하도록 필드를 나눔.
+// 필수: 커맨드 패킷 (desc_type은 FW_PACKET_COMMAND만 허용)
 message FuzzedCmdPacket {
-  PacketDescriptorType desc_type = 1; // 패킷 디스크립터 타입 (원래 U32)
-  uint32 opcode = 2;                  // Opcode
-  CommandArguments arguments = 3;     // 커맨드 인자
+  PacketDescriptorType desc_type = 1; // 필수, FW_PACKET_COMMAND만 허용
+  uint32 opcode = 2;                  // 필수, 0~3(내장), 4~(등록 필요)
+  CommandArguments arguments = 3;     // 필수
 }
 
-// seqCmdBuff 포트로 들어가는 Fw::ComBuffer의 내용을 모방
+// 필수: seqCmdBuff 포트 입력
 message CommandBufferInput {
-  FuzzedCmdPacket packet_content = 1; // 직렬화될 CmdPacket 내용
-  uint32 context = 2;                 // seqCmdBuff 핸들러의 context 파라미터
-  bool simulate_serialization_failure = 3; // true면 packet_content 대신 임의의 바이트 시퀀스를 사용
-  bytes raw_buffer_override = 4; // simulate_serialization_failure가 true일 때 사용될 바이트 시퀀스
+  FuzzedCmdPacket packet_content = 1; // 필수
+  uint32 context = 2;                 // 필수
+  optional bool simulate_serialization_failure = 3; // 옵션
+  optional bytes raw_buffer_override = 4; // 옵션
 }
 
-// compCmdReg 포트로 들어가는 Opcode 등록 요청
+// 필수: 커맨드 등록 (opcode는 4 이상만 등록 가능)
 message CommandRegistrationInput {
-  uint32 opcode_to_register = 1;
-  // portNum은 FuzzTester 내부에서 결정될 수 있으므로, 여기서는 Opcode만
+  uint32 opcode_to_register = 1; // 필수, 4 이상
 }
 
-// CmdDispatcherImpl의 내장 커맨드 실행 시나리오
+// 필수: 내장 커맨드 실행 시나리오
 message InternalCommandScenario {
   enum CommandType {
     NO_OP = 0;
@@ -61,40 +59,35 @@ message InternalCommandScenario {
     TEST_CMD_1 = 2;
     CLEAR_TRACKING = 3;
   }
-  CommandType command_type = 1;
-  string no_op_string_arg = 2; // For NO_OP_STRING
-  int32 test_cmd_arg1_i32 = 3; // For TEST_CMD_1
-  float test_cmd_arg2_f32 = 4; // For TEST_CMD_1
-  uint32 test_cmd_arg3_u8 = 5; // For TEST_CMD_1 (proto3는 u8이 없으므로 u32 사용)
+  CommandType command_type = 1; // 필수
+  optional string no_op_string_arg = 2; // NO_OP_STRING일 때 필수
+  optional int32 test_cmd_arg1_i32 = 3; // TEST_CMD_1일 때 필수
+  optional float test_cmd_arg2_f32 = 4; // TEST_CMD_1일 때 필수
+  optional uint32 test_cmd_arg3_u8 = 5; // TEST_CMD_1일 때 필수
 }
 
-// compCmdStat 포트를 통해 응답을 시뮬레이션하기 위한 정보
+// 필수: compCmdStat 포트 입력
 message CommandStatusInput {
-  uint32 opcode = 1;
-  uint32 cmd_seq = 2; // 이 값은 FuzzTester가 내부적으로 관리하는 m_cmdSendCmdSeq를 사용해야 할 수 있음
-  CmdResponseEnum response_enum = 3;
-  bool use_fuzzed_cmd_seq = 4; // true면 아래 fuzzed_cmd_seq 사용, false면 내부 m_cmdSendCmdSeq
-  uint32 fuzzed_cmd_seq = 5;
+  uint32 opcode = 1; // 필수
+  uint32 cmd_seq = 2; // 필수
+  CmdResponseEnum response_enum = 3; // 필수
+  optional bool use_fuzzed_cmd_seq = 4; // 옵션
+  optional uint32 fuzzed_cmd_seq = 5; // 옵션
 }
 
-// 하나의 퍼징 입력 단위. 다양한 종류의 액션을 포함할 수 있음.
+// 필수: 하나의 퍼징 액션
 message CmdDispatcherFuzzAction {
   oneof action_type {
     CommandBufferInput send_cmd_buffer = 1;
     CommandRegistrationInput register_cmd = 2;
-    InternalCommandScenario internal_cmd = 3; // CmdDispatcher의 자체 커맨드 실행 (NO_OP 등)
-    CommandStatusInput simulate_cmd_status = 4; // compCmdStat을 통해 응답 시뮬레이션
-    // 향후 Ping 테스트 등 다른 액션 추가 가능
-    // bool send_ping = 5;
+    InternalCommandScenario internal_cmd = 3;
+    CommandStatusInput simulate_cmd_status = 4;
   }
 }
 
-// 퍼저가 생성할 최상위 메시지. 여러 액션의 시퀀스를 포함할 수 있음.
+// 필수: 퍼저 입력 (actions는 1개 이상 필수)
 message CmdDispatcherFuzzInput {
-  // 한 번의 퍼징 시도에서 실행할 액션들의 시퀀스
-  repeated CmdDispatcherFuzzAction actions = 1;
-
-  // 전역적인 설정 (예: CmdDispatcherImpl 초기화 파라미터) - 필요시 추가
-  uint32 initial_queue_depth = 2;
-  uint32 initial_instance_id = 3;
+  repeated CmdDispatcherFuzzAction actions = 1; // 필수, 1개 이상
+  optional uint32 initial_queue_depth = 2; // 옵션
+  optional uint32 initial_instance_id = 3; // 옵션
 } 
